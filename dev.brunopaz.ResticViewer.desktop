@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Restic Viewer
+Comment=Browse and restore restic backup repositories
+Exec=restic-viewer
+Icon=drive-harddisk-symbolic
+Terminal=false
+Categories=Utility;System;Filesystem;
+StartupNotify=true

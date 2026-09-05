@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.brunopaz.ResticViewer</id>
+  <name>Restic Viewer</name>
+  <summary>Browse and restore restic backup repositories</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="dev.brunopaz">
+    <name>Bruno Paz</name>
+  </developer>
+  <description>
+    <p>
+      Restic Viewer attaches to Repositories you already back up elsewhere (via the restic
+      CLI, cron, or another tool), lets you browse their Snapshots and file trees, and
+      restores what you need. It doesn't run backups, doesn't schedule anything, and
+      doesn't touch your Repository's data.
+    </p>
+    <ul>
+      <li>Browse Local, SFTP, and S3-compatible Repositories</li>
+      <li>List Snapshots and walk their file trees</li>
+      <li>Restore individual files or a whole Snapshot, to a new directory or the original path</li>
+      <li>Live restore progress with cancel support</li>
+      <li>Repository passwords and Backend credentials stored in the system keyring</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">dev.brunopaz.ResticViewer.desktop</launchable>
+  <categories>
+    <category>Utility</category>
+    <category>System</category>
+    <category>Filesystem</category>
+  </categories>
+  <icon type="stock">drive-harddisk-symbolic</icon>
+  <url type="homepage">https://brpaz.github.io/restic-viewer/</url>
+  <url type="bugtracker">https://github.com/brpaz/restic-viewer/issues</url>
+  <content_rating type="oars-1.1" />
+</component>

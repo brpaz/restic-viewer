@@ -59,7 +59,9 @@
             },
             "build-commands": [
                 "cargo --offline build --release -p restic-viewer",
-                "install -Dm755 target/release/restic-viewer /app/bin/restic-viewer"
+                "install -Dm755 target/release/restic-viewer /app/bin/restic-viewer",
+                "install -Dm644 dev.brunopaz.ResticViewer.desktop /app/share/applications/dev.brunopaz.ResticViewer.desktop",
+                "install -Dm644 dev.brunopaz.ResticViewer.metainfo.xml /app/share/metainfo/dev.brunopaz.ResticViewer.metainfo.xml"
             ],
             "sources": [
                 {
