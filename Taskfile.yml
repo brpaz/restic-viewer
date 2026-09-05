@@ -1,0 +1,89 @@
+version: "3"
+
+vars:
+  MANIFEST: dev.brunopaz.ResticGtk.json
+  APP_ID: dev.brunopaz.ResticGtk
+
+tasks:
+  default:
+    desc: List available tasks
+    cmd: task --list
+
+  build:
+    desc: Build the app in debug mode
+    cmds:
+      - cargo build -p restic-gtk
+
+  build:release:
+    desc: Build the app in release mode
+    cmds:
+      - cargo build --release -p restic-gtk
+
+  run:
+    desc: Run the app natively (not sandboxed)
+    cmds:
+      - cargo run -p restic-gtk
+
+  test:
+    desc: Run the full workspace test suite
+    cmds:
+      - cargo test --workspace
+
+  fmt:
+    desc: Format the workspace
+    cmds:
+      - cargo fmt
+
+  fmt:check:
+    desc: Check formatting without modifying files (used in CI)
+    cmds:
+      - cargo fmt --check
+
+  lint:
+    desc: Run clippy, denying warnings (used in CI)
+    cmds:
+      - cargo clippy --workspace --all-targets -- -D warnings
+
+  ci:
+    desc: Run the same checks as the CI workflow
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test
+
+  flatpak:sources:
+    desc: Regenerate build-aux/cargo-sources.json from Cargo.lock
+    cmds:
+      - cargo generate-lockfile --offline || cargo generate-lockfile
+      - uv run build-aux/flatpak-cargo-generator.py Cargo.lock -o build-aux/cargo-sources.json
+
+  flatpak:sources:check:
+    desc: Fail if build-aux/cargo-sources.json is stale relative to Cargo.lock (used in CI)
+    cmds:
+      - uv run build-aux/flatpak-cargo-generator.py Cargo.lock -o /tmp/cargo-sources-check.json
+      - diff -q build-aux/cargo-sources.json /tmp/cargo-sources-check.json || (echo "build-aux/cargo-sources.json is stale — run 'task flatpak:sources' and commit the result" && exit 1)
+
+  flatpak:build:
+    desc: Build the Flatpak with flatpak-builder
+    cmds:
+      - flatpak-builder --force-clean --user --install-deps-from=flathub build-dir {{.MANIFEST}}
+
+  flatpak:install:
+    desc: Build and install the Flatpak locally
+    cmds:
+      - flatpak-builder --force-clean --user --install-deps-from=flathub --install build-dir {{.MANIFEST}}
+
+  flatpak:run:
+    desc: Run the installed Flatpak
+    cmds:
+      - flatpak run {{.APP_ID}}
+
+  hooks:install:
+    desc: Install Git hooks (lefthook + commitlint-rs must be on $PATH)
+    cmds:
+      - lefthook install
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf target build-dir .flatpak-builder

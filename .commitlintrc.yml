@@ -1,0 +1,22 @@
+rules:
+  type:
+    level: error
+    options:
+      - feat
+      - fix
+      - docs
+      - style
+      - refactor
+      - perf
+      - test
+      - build
+      - ci
+      - chore
+      - revert
+  type-empty:
+    level: error
+  description-empty:
+    level: error
+  description-max-length:
+    level: warning
+    length: 100

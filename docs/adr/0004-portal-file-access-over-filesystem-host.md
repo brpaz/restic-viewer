@@ -1,0 +1,3 @@
+# File access via the document portal, not `--filesystem=host`
+
+Restore needs the user to pick a Target Directory, and attaching a Repository needs picking a local path for Local-backend repositories. A sandboxed Flatpak app can get broad filesystem access via `--filesystem=host`, or scope access per-pick through the GTK file chooser portal (`Gio.FileDialog`), which grants access only to the specific folder the user selects. We chose the portal path to keep the sandboxing benefit of shipping as a Flatpak at all — a blanket `--filesystem=host` permission would make that distribution choice largely cosmetic.

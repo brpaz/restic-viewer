@@ -1,0 +1,3 @@
+# Raw gtk4-rs + libadwaita instead of relm4
+
+relm4 is the common choice for Rust GTK4 apps needing async, message-driven UI updates (this app streams restic subprocess output into the UI during Restore), and was the initial recommendation. The user chose raw `gtk4-rs` + `libadwaita` bindings with manual signal wiring instead, for direct control over widget code and libadwaita idioms rather than relm4's component/message abstraction. Async subprocess handling is done via `glib::spawn_future_local` and `gio::Subprocess`, keeping a single GLib main-loop instead of introducing relm4's runtime on top.

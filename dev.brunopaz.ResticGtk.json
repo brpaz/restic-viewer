@@ -1,0 +1,74 @@
+{
+    "app-id": "dev.brunopaz.ResticGtk",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "49",
+    "sdk": "org.gnome.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable",
+        "org.freedesktop.Sdk.Extension.golang"
+    ],
+    "command": "restic-gtk",
+    "finish-args": [
+        "--share=ipc",
+        "--share=network",
+        "--socket=wayland",
+        "--socket=fallback-x11",
+        "--device=dri",
+        "--talk-name=org.freedesktop.secrets"
+    ],
+    "modules": [
+        {
+            "name": "restic",
+            "buildsystem": "simple",
+            "build-options": {
+                "append-path": "/usr/lib/sdk/golang/bin",
+                "env": {
+                    "GOFLAGS": "-mod=vendor",
+                    "GOPROXY": "off",
+                    "GOCACHE": "/run/build/restic/go-build-cache"
+                }
+            },
+            "build-commands": [
+                "go build -trimpath -o restic ./cmd/restic",
+                "install -Dm755 restic /app/bin/restic"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/restic/restic/releases/download/v0.19.1/restic-0.19.1.tar.gz",
+                    "sha256": "bb9b1a19040744d26d8a79be029d4e6b189c45ccc9d8831d7fe367d3c33df725"
+                },
+                {
+                    "type": "archive",
+                    "path": "build-aux/restic-0.19.1-go-vendor.tar.gz",
+                    "sha256": "f89d4a0ea7cee5088711e66ee31ff746d62b2d75f45c0ece91231f9e8825dad1",
+                    "strip-components": 0
+                }
+            ]
+        },
+        {
+            "name": "restic-gtk",
+            "buildsystem": "simple",
+            "build-options": {
+                "append-path": "/usr/lib/sdk/rust-stable/bin",
+                "env": {
+                    "CARGO_HOME": "/run/build/restic-gtk/cargo",
+                    "CARGO_INCREMENTAL": "0",
+                    "RUSTFLAGS": "--remap-path-prefix=/run/build/restic-gtk/crates/app=/build --remap-path-prefix=/run/build/restic-gtk/cargo=/cargo"
+                }
+            },
+            "build-commands": [
+                "cargo --offline build --release -p restic-gtk",
+                "install -Dm755 target/release/restic-gtk /app/bin/restic-gtk"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": ".",
+                    "skip": ["target", ".git", ".scratch"]
+                },
+                "build-aux/cargo-sources.json"
+            ]
+        }
+    ]
+}

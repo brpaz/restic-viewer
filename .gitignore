@@ -1,0 +1,8 @@
+/target/
+/.flatpak-builder/
+/build-dir/
+*.flatpak
+/build-info.env
+/site/
+/.cache/
+/.claude/
