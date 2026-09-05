@@ -1,0 +1,13 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ToolbarView toolbar_view {
+  [top]
+  Adw.HeaderBar {
+    [end]
+    Gtk.Button restore_button {
+      label: "Restore Selected";
+      sensitive: false;
+    }
+  }
+}

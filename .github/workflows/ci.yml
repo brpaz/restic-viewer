@@ -86,10 +86,10 @@ jobs:
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: restic-gtk.flatpak
-          manifest-path: dev.brunopaz.ResticGtk.json
+          bundle: restic-viewer.flatpak
+          manifest-path: dev.brunopaz.ResticViewer.json
           cache-key: flatpak-builder-${{ github.sha }}
-          artifact-name: restic-gtk-flatpak-bundle
+          artifact-name: restic-viewer-flatpak-bundle
 
   flatpak-asset:
     name: Attach Flatpak bundle to release
@@ -101,9 +101,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: restic-gtk-flatpak-bundle
+          name: restic-viewer-flatpak-bundle
 
       - name: Upload bundle to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.event.release.tag_name }}" restic-gtk.flatpak --repo "${{ github.repository }}"
+        run: gh release upload "${{ github.event.release.tag_name }}" restic-viewer.flatpak --repo "${{ github.repository }}"

@@ -17,6 +17,7 @@ use crate::keyring::{self, CredentialKind};
 use crate::restore_dialog;
 
 const RESTIC_EXIT_WRONG_PASSWORD: i32 = 12;
+const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/repository_detail.ui";
 
 /// Returned handle: embed `widget` in the detail pane, call `show_placeholder()` when
 /// nothing is selected, and `load(entry)` when a Repository is selected.
@@ -37,72 +38,20 @@ impl DetailView {
 }
 
 pub fn build(parent: adw::ApplicationWindow) -> DetailView {
-    let placeholder = simple_page(
-        "folder-symbolic",
-        "Select a Repository",
-        "Choose a Repository from the sidebar to browse its Snapshots.",
-    );
+    let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
+    let stack: gtk4::Stack = builder.object("stack").expect("stack");
+    let snapshot_list_page: adw::NavigationPage = builder
+        .object("snapshot_list_page")
+        .expect("snapshot_list_page");
+    let snapshot_list: gtk4::ListBox = builder.object("snapshot_list").expect("snapshot_list");
+    let nav_view: adw::NavigationView = builder.object("nav_view").expect("nav_view");
+    let error_status: adw::StatusPage = builder.object("error_status").expect("error_status");
+    let unlock_password_row: adw::PasswordEntryRow = builder
+        .object("unlock_password_row")
+        .expect("unlock_password_row");
+    let unlock_button: gtk4::Button = builder.object("unlock_button").expect("unlock_button");
 
-    let spinner = adw::Spinner::new();
-    spinner.set_halign(gtk4::Align::Center);
-    spinner.set_valign(gtk4::Align::Center);
-    let loading = wrap_in_toolbar(spinner.upcast());
-
-    let snapshot_list = gtk4::ListBox::builder()
-        .selection_mode(gtk4::SelectionMode::None)
-        .css_classes(["boxed-list"])
-        .build();
-    snapshot_list.set_margin_top(12);
-    snapshot_list.set_margin_bottom(12);
-    snapshot_list.set_margin_start(12);
-    snapshot_list.set_margin_end(12);
-    let snapshot_list_scroller = gtk4::ScrolledWindow::builder()
-        .child(&snapshot_list)
-        .build();
-    let snapshot_list_page = adw::NavigationPage::builder()
-        .title("Snapshots")
-        .child(&wrap_in_toolbar(snapshot_list_scroller.upcast()))
-        .build();
-
-    let nav_view = adw::NavigationView::new();
     nav_view.push(&snapshot_list_page);
-    let snapshots_widget: gtk4::Widget = nav_view.clone().upcast();
-
-    let error_status = adw::StatusPage::builder()
-        .icon_name("dialog-warning-symbolic")
-        .title("Couldn't Open Repository")
-        .build();
-    let error_widget = wrap_in_toolbar(error_status.clone().upcast());
-
-    let unlock_password_row = adw::PasswordEntryRow::builder()
-        .title("Repository Password")
-        .build();
-    let unlock_button = gtk4::Button::builder()
-        .label("Unlock")
-        .css_classes(["suggested-action"])
-        .halign(gtk4::Align::End)
-        .build();
-    let unlock_group = adw::PreferencesGroup::new();
-    unlock_group.add(&unlock_password_row);
-    let unlock_box = gtk4::Box::new(gtk4::Orientation::Vertical, 12);
-    unlock_box.set_margin_top(24);
-    unlock_box.set_margin_start(24);
-    unlock_box.set_margin_end(24);
-    unlock_box.append(&simple_page_status(
-        "dialog-password-symbolic",
-        "Repository Locked",
-        "Enter the Repository Password to continue.",
-    ));
-    unlock_box.append(&unlock_group);
-    unlock_box.append(&unlock_button);
-    let unlock_widget = wrap_in_toolbar(unlock_box.upcast());
-
-    let stack = gtk4::Stack::new();
-    stack.add_named(&placeholder, Some("placeholder"));
-    stack.add_named(&loading, Some("loading"));
-    stack.add_named(&snapshots_widget, Some("snapshots"));
-    stack.add_named(&error_widget, Some("error"));
-    stack.add_named(&unlock_widget, Some("unlock"));
 
     let generation = Rc::new(Cell::new(0u64));
     let current_entry: Rc<RefCell<Option<RepositoryEntry>>> = Rc::new(RefCell::new(None));
@@ -324,16 +273,4 @@ fn wrap_in_toolbar(content: gtk4::Widget) -> gtk4::Widget {
     toolbar_view.add_top_bar(&adw::HeaderBar::new());
     toolbar_view.set_content(Some(&content));
     toolbar_view.upcast()
-}
-
-fn simple_page(icon_name: &str, title: &str, description: &str) -> gtk4::Widget {
-    wrap_in_toolbar(simple_page_status(icon_name, title, description).upcast())
-}
-
-fn simple_page_status(icon_name: &str, title: &str, description: &str) -> adw::StatusPage {
-    adw::StatusPage::builder()
-        .icon_name(icon_name)
-        .title(title)
-        .description(description)
-        .build()
 }

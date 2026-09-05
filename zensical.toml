@@ -1,13 +1,13 @@
 [project]
-site_url = "https://brpaz.github.io/restic-gtk/"
-site_name = "restic-gtk"
+site_url = "https://brpaz.github.io/restic-viewer/"
+site_name = "Restic Viewer"
 site_description = "Native GTK4/libadwaita app for browsing and restoring restic backup repositories."
 site_author = "Bruno Paz"
 
 copyright = "Copyright &copy; 2026 Bruno Paz"
 
-repo_url = "https://github.com/brpaz/restic-gtk"
-repo_name = "brpaz/restic-gtk"
+repo_url = "https://github.com/brpaz/restic-viewer"
+repo_name = "brpaz/restic-viewer"
 edit_uri = "edit/main/docs/"
 
 nav = [
@@ -86,7 +86,7 @@ toggle.name = "Switch to system preference"
 
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
-link = "https://github.com/brpaz/restic-gtk"
+link = "https://github.com/brpaz/restic-viewer"
 
 [project.markdown_extensions]
 admonition = {}

@@ -17,6 +17,8 @@ use restic_client::{Entry, EntryKind, RealResticClient, RepositoryConnection, Re
 
 use crate::restore_dialog;
 
+const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/entry_tree.ui";
+
 struct NodeData {
     entry: Entry,
     connection: RepositoryConnection,
@@ -136,10 +138,11 @@ pub fn build(
         .build()
         .upcast();
 
-    let restore_button = gtk4::Button::builder()
-        .label("Restore Selected")
-        .sensitive(false)
-        .build();
+    let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
+    let toolbar_view: adw::ToolbarView = builder.object("toolbar_view").expect("toolbar_view");
+    let restore_button: gtk4::Button = builder.object("restore_button").expect("restore_button");
+    toolbar_view.set_content(Some(&scroller));
+
     restore_button.connect_clicked({
         let selection_model = selection_model.clone();
         let connection = connection.clone();
@@ -166,12 +169,6 @@ pub fn build(
         }
     });
 
-    let header = adw::HeaderBar::new();
-    header.pack_end(&restore_button);
-
-    let toolbar_view = adw::ToolbarView::new();
-    toolbar_view.add_top_bar(&header);
-    toolbar_view.set_content(Some(&scroller));
     toolbar_view.upcast()
 }
 

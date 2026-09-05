@@ -1,0 +1,51 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  title: "Rename Repository";
+  content-width: 360;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Rename Repository";
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+
+      Adw.PreferencesPage {
+        Adw.PreferencesGroup {
+          Adw.EntryRow name_row {
+            title: "Name";
+          }
+        }
+      }
+    };
+
+    [bottom]
+    Gtk.Box {
+      orientation: horizontal;
+      spacing: 8;
+      margin-top: 8;
+      margin-bottom: 8;
+      margin-start: 12;
+      margin-end: 12;
+
+      Gtk.Button cancel_button {
+        label: "Cancel";
+      }
+
+      Gtk.Box {
+        hexpand: true;
+      }
+
+      Gtk.Button save_button {
+        label: "Save";
+        styles ["suggested-action"]
+      }
+    }
+  };
+}

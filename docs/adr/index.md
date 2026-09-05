@@ -1,6 +1,6 @@
 # Architecture Decisions
 
-Architecture Decision Records (ADRs) capture the hard-to-reverse, non-obvious choices made while building restic-gtk — what was decided, and why, so a later reader doesn't wonder why something wasn't done "the obvious way" instead.
+Architecture Decision Records (ADRs) capture the hard-to-reverse, non-obvious choices made while building Restic Viewer — what was decided, and why, so a later reader doesn't wonder why something wasn't done "the obvious way" instead.
 
 - [0001 — Read-only browser scope](0001-read-only-browser-scope.md)
 - [0002 — Bundle restic in Flatpak](0002-bundle-restic-in-flatpak.md)

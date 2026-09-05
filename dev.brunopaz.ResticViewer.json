@@ -1,5 +1,5 @@
 {
-    "app-id": "dev.brunopaz.ResticGtk",
+    "app-id": "dev.brunopaz.ResticViewer",
     "runtime": "org.gnome.Platform",
     "runtime-version": "49",
     "sdk": "org.gnome.Sdk",
@@ -7,7 +7,7 @@
         "org.freedesktop.Sdk.Extension.rust-stable",
         "org.freedesktop.Sdk.Extension.golang"
     ],
-    "command": "restic-gtk",
+    "command": "restic-viewer",
     "finish-args": [
         "--share=ipc",
         "--share=network",
@@ -47,19 +47,19 @@
             ]
         },
         {
-            "name": "restic-gtk",
+            "name": "restic-viewer",
             "buildsystem": "simple",
             "build-options": {
                 "append-path": "/usr/lib/sdk/rust-stable/bin",
                 "env": {
-                    "CARGO_HOME": "/run/build/restic-gtk/cargo",
+                    "CARGO_HOME": "/run/build/restic-viewer/cargo",
                     "CARGO_INCREMENTAL": "0",
-                    "RUSTFLAGS": "--remap-path-prefix=/run/build/restic-gtk/crates/app=/build --remap-path-prefix=/run/build/restic-gtk/cargo=/cargo"
+                    "RUSTFLAGS": "--remap-path-prefix=/run/build/restic-viewer/crates/app=/build --remap-path-prefix=/run/build/restic-viewer/cargo=/cargo"
                 }
             },
             "build-commands": [
-                "cargo --offline build --release -p restic-gtk",
-                "install -Dm755 target/release/restic-gtk /app/bin/restic-gtk"
+                "cargo --offline build --release -p restic-viewer",
+                "install -Dm755 target/release/restic-viewer /app/bin/restic-viewer"
             ],
             "sources": [
                 {

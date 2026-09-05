@@ -2,8 +2,8 @@
 
 ## Types of contributions
 
-- **Bug reports** — [open an issue](https://github.com/brpaz/restic-gtk/issues/new/choose); include your install method (Flatpak or from source), the version/commit shown on the About page, and the Backend involved if relevant.
-- **Feature requests** — restic-gtk is deliberately scoped as a *browser*, not a backup manager (see [ADR-0001](docs/adr/0001-read-only-browser-scope.md)); check that scope before proposing something like scheduling or `forget`/`prune`. Backend support, restore UX, and browsing improvements are all fair game.
+- **Bug reports** — [open an issue](https://github.com/brpaz/restic-viewer/issues/new/choose); include your install method (Flatpak or from source), the version/commit shown on the About page, and the Backend involved if relevant.
+- **Feature requests** — Restic Viewer is deliberately scoped as a *browser*, not a backup manager (see [ADR-0001](docs/adr/0001-read-only-browser-scope.md)); check that scope before proposing something like scheduling or `forget`/`prune`. Backend support, restore UX, and browsing improvements are all fair game.
 - **Code** — see the workflow below. Bug fixes and small, well-scoped features can go straight to a PR; anything that touches architecture (a new Backend transport, a different UI framework, sandbox permissions) should reference or add an ADR first.
 - **Documentation** — the docs site (`docs/`) and this file are as much a target for improvement as the code.
 - **Testing on real setups** — SFTP/S3 Repositories, different distros, different window managers. The test suite covers Local heavily; real-world coverage of the other Backends is thin.
@@ -24,8 +24,8 @@ Committing additionally requires [Lefthook](https://lefthook.dev/) and [`commitl
 ## Build from source
 
 ```bash
-git clone https://github.com/brpaz/restic-gtk.git
-cd restic-gtk
+git clone https://github.com/brpaz/restic-viewer.git
+cd restic-viewer
 task run
 ```
 

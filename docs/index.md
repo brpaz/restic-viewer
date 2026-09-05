@@ -1,19 +1,19 @@
-# restic-gtk
+# Restic Viewer
 
 A native GNOME (GTK4 + libadwaita) app for browsing and restoring restic backup repositories.
 
-restic-gtk attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data — see [ADR-0001](adr/0001-read-only-browser-scope.md) for why.
+Restic Viewer attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data — see [ADR-0001](adr/0001-read-only-browser-scope.md) for why.
 
 ## Install
 
-Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-gtk/releases/latest):
+Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-viewer/releases/latest):
 
 ```bash
-flatpak install --user restic-gtk.flatpak
-flatpak run dev.brunopaz.ResticGtk
+flatpak install --user restic-viewer.flatpak
+flatpak run dev.brunopaz.ResticViewer
 ```
 
-Building from source, running tests, and the full Taskfile reference live in [CONTRIBUTING](https://github.com/brpaz/restic-gtk/blob/main/CONTRIBUTING.md).
+Building from source, running tests, and the full Taskfile reference live in [CONTRIBUTING](https://github.com/brpaz/restic-viewer/blob/main/CONTRIBUTING.md).
 
 ## Architecture
 

@@ -22,6 +22,8 @@ const BACKEND_LOCAL: u32 = 0;
 const BACKEND_SFTP: u32 = 1;
 const BACKEND_S3: u32 = 2;
 
+const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/add_repository.ui";
+
 pub fn present(
     parent: &adw::ApplicationWindow,
     store: Rc<RepositoryStore>,
@@ -29,111 +31,29 @@ pub fn present(
 ) {
     let on_added = Rc::new(on_added);
 
-    let name_row = adw::EntryRow::builder().title("Name").build();
-
-    let backend_row = adw::ComboRow::builder()
-        .title("Repository Type")
-        .model(&gtk4::StringList::new(&["Local", "SFTP", "S3-compatible"]))
-        .build();
+    let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
+    let dialog: adw::Dialog = builder.object("dialog").expect("dialog");
+    let name_row: adw::EntryRow = builder.object("name_row").expect("name_row");
+    let backend_row: adw::ComboRow = builder.object("backend_row").expect("backend_row");
+    let local_group: adw::PreferencesGroup = builder.object("local_group").expect("local_group");
+    let location_row: adw::ActionRow = builder.object("location_row").expect("location_row");
+    let sftp_group: adw::PreferencesGroup = builder.object("sftp_group").expect("sftp_group");
+    let host_row: adw::EntryRow = builder.object("host_row").expect("host_row");
+    let sftp_path_row: adw::EntryRow = builder.object("sftp_path_row").expect("sftp_path_row");
+    let user_row: adw::EntryRow = builder.object("user_row").expect("user_row");
+    let s3_group: adw::PreferencesGroup = builder.object("s3_group").expect("s3_group");
+    let endpoint_row: adw::EntryRow = builder.object("endpoint_row").expect("endpoint_row");
+    let bucket_row: adw::EntryRow = builder.object("bucket_row").expect("bucket_row");
+    let access_key_row: adw::EntryRow = builder.object("access_key_row").expect("access_key_row");
+    let secret_key_row: adw::PasswordEntryRow =
+        builder.object("secret_key_row").expect("secret_key_row");
+    let password_row: adw::PasswordEntryRow = builder.object("password_row").expect("password_row");
+    let error_label: gtk4::Label = builder.object("error_label").expect("error_label");
+    let cancel_button: gtk4::Button = builder.object("cancel_button").expect("cancel_button");
+    let add_button: gtk4::Button = builder.object("add_button").expect("add_button");
 
     // Local fields
     let chosen_path: Rc<RefCell<Option<PathBuf>>> = Rc::new(RefCell::new(None));
-    let location_row = adw::ActionRow::builder()
-        .title("Location")
-        .subtitle("No folder selected")
-        .activatable(true)
-        .build();
-    location_row.add_suffix(&gtk4::Image::from_icon_name("folder-symbolic"));
-    let local_group = adw::PreferencesGroup::new();
-    local_group.add(&location_row);
-
-    // SFTP fields
-    let host_row = adw::EntryRow::builder().title("Host").build();
-    let sftp_path_row = adw::EntryRow::builder().title("Remote Path").build();
-    let user_row = adw::EntryRow::builder().title("Username").build();
-    let sftp_group = adw::PreferencesGroup::new();
-    sftp_group.add(&host_row);
-    sftp_group.add(&sftp_path_row);
-    sftp_group.add(&user_row);
-    sftp_group.set_visible(false);
-    sftp_group.set_description(Some(
-        "SFTP uses this machine's existing SSH key or agent — there is no password field here.",
-    ));
-
-    // S3 fields
-    let endpoint_row = adw::EntryRow::builder().title("Endpoint").build();
-    let bucket_row = adw::EntryRow::builder().title("Bucket").build();
-    let access_key_row = adw::EntryRow::builder().title("Access Key ID").build();
-    let secret_key_row = adw::PasswordEntryRow::builder()
-        .title("Secret Access Key")
-        .build();
-    let s3_group = adw::PreferencesGroup::new();
-    s3_group.add(&endpoint_row);
-    s3_group.add(&bucket_row);
-    s3_group.add(&access_key_row);
-    s3_group.add(&secret_key_row);
-    s3_group.set_visible(false);
-
-    let password_row = adw::PasswordEntryRow::builder()
-        .title("Repository Password")
-        .build();
-
-    let error_label = gtk4::Label::builder()
-        .label("")
-        .css_classes(["error"])
-        .wrap(true)
-        .visible(false)
-        .build();
-
-    let top_group = adw::PreferencesGroup::new();
-    top_group.add(&name_row);
-    top_group.add(&backend_row);
-
-    let password_group = adw::PreferencesGroup::new();
-    password_group.add(&password_row);
-
-    let content = gtk4::Box::new(gtk4::Orientation::Vertical, 0);
-    let page = adw::PreferencesPage::new();
-    page.add(&top_group);
-    page.add(&local_group);
-    page.add(&sftp_group);
-    page.add(&s3_group);
-    page.add(&password_group);
-    content.append(&page);
-    content.append(&error_label);
-
-    let toolbar_view = adw::ToolbarView::new();
-    toolbar_view.add_top_bar(
-        &adw::HeaderBar::builder()
-            .title_widget(&adw::WindowTitle::new("Add Repository", ""))
-            .build(),
-    );
-    toolbar_view.set_content(Some(&content));
-
-    let dialog = adw::Dialog::builder()
-        .title("Add Repository")
-        .content_width(420)
-        .child(&toolbar_view)
-        .build();
-
-    let cancel_button = gtk4::Button::builder().label("Cancel").build();
-    let add_button = gtk4::Button::builder()
-        .label("Add")
-        .css_classes(["suggested-action"])
-        .sensitive(false)
-        .build();
-
-    let bottom_bar = gtk4::Box::new(gtk4::Orientation::Horizontal, 8);
-    bottom_bar.set_margin_top(8);
-    bottom_bar.set_margin_bottom(8);
-    bottom_bar.set_margin_start(12);
-    bottom_bar.set_margin_end(12);
-    bottom_bar.append(&cancel_button);
-    let spacer = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
-    spacer.set_hexpand(true);
-    bottom_bar.append(&spacer);
-    bottom_bar.append(&add_button);
-    toolbar_view.add_bottom_bar(&bottom_bar);
 
     let selected_backend = {
         let backend_row = backend_row.clone();
@@ -304,7 +224,7 @@ pub fn present(
                     Ok(_) => {
                         let id = glib::uuid_string_random().to_string();
 
-                        let password_label = format!("restic-gtk: {name} Repository password");
+                        let password_label = format!("Restic Viewer: {name} Repository password");
                         if let Err(err) = keyring::store(
                             &id,
                             CredentialKind::Password,
@@ -321,7 +241,7 @@ pub fn present(
                         }
 
                         if let Some(secret) = &backend_secret {
-                            let secret_label = format!("restic-gtk: {name} Backend secret");
+                            let secret_label = format!("Restic Viewer: {name} Backend secret");
                             if let Err(err) = keyring::store(
                                 &id,
                                 CredentialKind::BackendSecret,

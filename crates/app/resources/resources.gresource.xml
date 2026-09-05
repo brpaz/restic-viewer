@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/dev/brunopaz/ResticViewer">
+    <file>window.ui</file>
+    <file>rename_dialog.ui</file>
+    <file>add_repository.ui</file>
+    <file>restore_dialog.ui</file>
+    <file>repository_detail.ui</file>
+    <file>entry_tree.ui</file>
+  </gresource>
+</gresources>

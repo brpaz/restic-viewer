@@ -13,7 +13,7 @@ body:
   - type: dropdown
     id: install-method
     attributes:
-      label: How is restic-gtk installed?
+      label: How is Restic Viewer installed?
       options:
         - Flatpak (.flatpak bundle from a release)
         - Built from source
@@ -24,7 +24,7 @@ body:
     id: version
     attributes:
       label: Version / commit
-      description: Shown on the About page (menu → About restic-gtk → debug info)
+      description: Shown on the About page (menu → About Restic Viewer → debug info)
       placeholder: e.g. v0.2.0, or a commit hash
     validations:
       required: true
@@ -45,7 +45,7 @@ body:
     id: logs
     attributes:
       label: Relevant output
-      description: Any error text shown in the app, or terminal output from `flatpak run --command=restic-gtk dev.brunopaz.ResticGtk`
+      description: Any error text shown in the app, or terminal output from `flatpak run --command=restic-viewer dev.brunopaz.ResticViewer`
       render: shell
     validations:
       required: false

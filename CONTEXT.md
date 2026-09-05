@@ -1,4 +1,4 @@
-# restic-gtk
+# Restic Viewer
 
 A native GNOME (GTK4/libadwaita) application for browsing and restoring from existing restic repositories. It does not create backups — it is a viewer and restore tool for repositories backed up elsewhere (cron, CLI, another machine).
 

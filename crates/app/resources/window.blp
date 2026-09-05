@@ -1,0 +1,61 @@
+using Gtk 4.0;
+using Adw 1;
+
+menu primary_menu {
+  item ("About Restic Viewer", "app.about")
+}
+
+Adw.ApplicationWindow window {
+  title: "Restic Viewer";
+  default-width: 900;
+  default-height: 600;
+}
+
+Adw.NavigationPage sidebar_page {
+  title: "Repositories";
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      [end]
+      Gtk.MenuButton menu_button {
+        icon-name: "open-menu-symbolic";
+        tooltip-text: "Main Menu";
+        menu-model: primary_menu;
+      }
+
+      [end]
+      Gtk.Button add_button {
+        icon-name: "list-add-symbolic";
+        tooltip-text: "Add Repository";
+      }
+    }
+
+    content: Gtk.Stack sidebar_stack {
+      Gtk.StackPage {
+        name: "empty";
+
+        child: Adw.StatusPage {
+          icon-name: "drive-harddisk-symbolic";
+          title: "No Repositories";
+          description: "Add a Repository to get started.";
+        };
+      }
+
+      Gtk.StackPage {
+        name: "list";
+
+        child: Gtk.ScrolledWindow {
+          child: Gtk.ListBox repo_list {
+            selection-mode: single;
+            styles ["boxed-list"]
+            margin-top: 12;
+            margin-bottom: 12;
+            margin-start: 12;
+            margin-end: 12;
+          };
+        };
+      }
+    };
+  };
+}

@@ -1,13 +1,13 @@
-# restic-gtk
+# Restic Viewer
 
 > A native GNOME (GTK4 + libadwaita) app for browsing and restoring restic backup repositories.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/brpaz/restic-gtk/ci.yml?branch=main&style=for-the-badge)](https://github.com/brpaz/restic-gtk/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/brpaz/restic-viewer/ci.yml?branch=main&style=for-the-badge)](https://github.com/brpaz/restic-viewer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE.md)
 [![Flatpak](https://img.shields.io/badge/flatpak-ready-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white)](https://flatpak.org)
-[![Vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4?style=for-the-badge)](https://github.com/brpaz/restic-gtk)
+[![Vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4?style=for-the-badge)](https://github.com/brpaz/restic-viewer)
 
-restic-gtk attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need — nothing more. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data.
+Restic Viewer attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need — nothing more. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data.
 
 ## Features
 
@@ -20,16 +20,16 @@ restic-gtk attaches to Repositories you already back up elsewhere (via `restic` 
 
 ## Install
 
-Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-gtk/releases/latest):
+Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-viewer/releases/latest):
 
 ```bash
-flatpak install --user restic-gtk.flatpak
-flatpak run dev.brunopaz.ResticGtk
+flatpak install --user restic-viewer.flatpak
+flatpak run dev.brunopaz.ResticViewer
 ```
 
 ## Documentation
 
-Full documentation, including architecture decisions: **[brpaz.github.io/restic-gtk](https://brpaz.github.io/restic-gtk/)**.
+Full documentation, including architecture decisions: **[brpaz.github.io/restic-viewer](https://brpaz.github.io/restic-viewer/)**.
 
 ## Contributing
 

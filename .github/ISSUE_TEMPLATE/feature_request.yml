@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        restic-gtk is deliberately scoped as a **Repository browser and restore tool**, not a backup manager — see [ADR-0001](https://github.com/brpaz/restic-gtk/blob/main/docs/adr/0001-read-only-browser-scope.md). Requests for running backups, scheduling, or `forget`/`prune` are out of scope by design.
+        Restic Viewer is deliberately scoped as a **Repository browser and restore tool**, not a backup manager — see [ADR-0001](https://github.com/brpaz/restic-viewer/blob/main/docs/adr/0001-read-only-browser-scope.md). Requests for running backups, scheduling, or `forget`/`prune` are out of scope by design.
 
   - type: textarea
     id: problem

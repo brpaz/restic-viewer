@@ -31,7 +31,7 @@ impl RepositoryStore {
     pub fn new() -> Self {
         Self {
             path: glib::user_config_dir()
-                .join("restic-gtk")
+                .join("restic-viewer")
                 .join("repositories.toml"),
         }
     }

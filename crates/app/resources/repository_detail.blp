@@ -1,0 +1,108 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.NavigationPage snapshot_list_page {
+  title: "Snapshots";
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {}
+
+    content: Gtk.ScrolledWindow {
+      child: Gtk.ListBox snapshot_list {
+        selection-mode: none;
+        styles ["boxed-list"]
+        margin-top: 12;
+        margin-bottom: 12;
+        margin-start: 12;
+        margin-end: 12;
+      };
+    };
+  };
+}
+
+Gtk.Stack stack {
+  Gtk.StackPage {
+    name: "placeholder";
+
+    child: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar {}
+
+      content: Adw.StatusPage {
+        icon-name: "folder-symbolic";
+        title: "Select a Repository";
+        description: "Choose a Repository from the sidebar to browse its Snapshots.";
+      };
+    };
+  }
+
+  Gtk.StackPage {
+    name: "loading";
+
+    child: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar {}
+
+      content: Adw.Spinner {
+        halign: center;
+        valign: center;
+      };
+    };
+  }
+
+  Gtk.StackPage {
+    name: "snapshots";
+
+    child: Adw.NavigationView nav_view {};
+  }
+
+  Gtk.StackPage {
+    name: "error";
+
+    child: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar {}
+
+      content: Adw.StatusPage error_status {
+        icon-name: "dialog-warning-symbolic";
+        title: "Couldn't Open Repository";
+      };
+    };
+  }
+
+  Gtk.StackPage {
+    name: "unlock";
+
+    child: Adw.ToolbarView {
+      [top]
+      Adw.HeaderBar {}
+
+      content: Gtk.Box {
+        orientation: vertical;
+        spacing: 12;
+        margin-top: 24;
+        margin-start: 24;
+        margin-end: 24;
+
+        Adw.StatusPage {
+          icon-name: "dialog-password-symbolic";
+          title: "Repository Locked";
+          description: "Enter the Repository Password to continue.";
+        }
+
+        Adw.PreferencesGroup {
+          Adw.PasswordEntryRow unlock_password_row {
+            title: "Repository Password";
+          }
+        }
+
+        Gtk.Button unlock_button {
+          label: "Unlock";
+          styles ["suggested-action"]
+          halign: end;
+        }
+      };
+    };
+  }
+}

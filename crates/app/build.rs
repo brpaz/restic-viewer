@@ -18,6 +18,8 @@ use std::process::Command;
 
 fn main() {
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("set by cargo");
+    compile_blueprints(&manifest_dir);
+
     let build_info_path = Path::new(&manifest_dir).join("../../build-info.env");
 
     let from_file = std::fs::read_to_string(&build_info_path)
@@ -37,12 +39,48 @@ fn main() {
         .and_then(|m| m.get("BUILD_DATE").cloned())
         .unwrap_or_else(commit_date_or_today);
 
-    println!("cargo:rustc-env=RESTIC_GTK_TAG={version}");
-    println!("cargo:rustc-env=RESTIC_GTK_GIT_COMMIT={commit}");
-    println!("cargo:rustc-env=RESTIC_GTK_BUILD_DATE={build_date}");
+    println!("cargo:rustc-env=RESTIC_VIEWER_TAG={version}");
+    println!("cargo:rustc-env=RESTIC_VIEWER_GIT_COMMIT={commit}");
+    println!("cargo:rustc-env=RESTIC_VIEWER_BUILD_DATE={build_date}");
 
     println!("cargo:rerun-if-changed={}", build_info_path.display());
     println!("cargo:rerun-if-changed=../../.git/HEAD");
+}
+
+/// Compiles `resources/*.blp` (Blueprint) to `.ui` (GtkBuilder XML) with
+/// `blueprint-compiler`, then bundles those into a GResource embedded in the binary
+/// via `gio::resources_register_include!("compiled.gresource")` at runtime (see
+/// `main.rs`). Blueprint files are the widget layout; Rust code loads them with
+/// `gtk4::Builder` and wires signals/dynamic behavior — see ADR-0005.
+fn compile_blueprints(manifest_dir: &str) {
+    let resources_dir = Path::new(manifest_dir).join("resources");
+    let out_dir = std::env::var("OUT_DIR").expect("set by cargo");
+    let compiled_ui_dir = Path::new(&out_dir).join("blueprint");
+    std::fs::create_dir_all(&compiled_ui_dir).expect("create blueprint output dir");
+
+    let blueprint_files: Vec<std::path::PathBuf> = std::fs::read_dir(&resources_dir)
+        .expect("read resources dir")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "blp"))
+        .collect();
+
+    let status = Command::new("blueprint-compiler")
+        .arg("batch-compile")
+        .arg(&compiled_ui_dir)
+        .arg(&resources_dir)
+        .args(&blueprint_files)
+        .status()
+        .expect("run blueprint-compiler (is it installed? `dnf install blueprint-compiler` / bundled in the GNOME SDK)");
+    assert!(status.success(), "blueprint-compiler failed");
+
+    glib_build_tools::compile_resources(
+        &[&compiled_ui_dir],
+        "resources/resources.gresource.xml",
+        "compiled.gresource",
+    );
+
+    println!("cargo:rerun-if-changed=resources");
 }
 
 fn parse_env_file(contents: &str) -> HashMap<String, String> {

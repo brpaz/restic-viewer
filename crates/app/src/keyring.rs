@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-const SCHEMA_NAME: &str = "dev.brunopaz.ResticGtk.Credential";
+const SCHEMA_NAME: &str = "dev.brunopaz.ResticViewer.Credential";
 
 /// Which secret this is, for a given Repository. Both share one schema, distinguished
 /// by this attribute, so a Repository can hold a password and a separate Backend

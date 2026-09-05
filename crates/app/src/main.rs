@@ -14,11 +14,14 @@ use libadwaita::prelude::*;
 
 use config::{RepositoryEntry, RepositoryStore};
 
-const APP_ID: &str = "dev.brunopaz.ResticGtk";
+const APP_ID: &str = "dev.brunopaz.ResticViewer";
+const RESOURCE_PREFIX: &str = "/dev/brunopaz/ResticViewer";
 
 type ReloadSidebarCell = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
 fn main() -> glib::ExitCode {
+    gio::resources_register_include!("compiled.gresource").expect("register app resources");
+
     let app = adw::Application::builder().application_id(APP_ID).build();
     app.connect_activate(build_ui);
     app.run()
@@ -28,57 +31,24 @@ fn build_ui(app: &adw::Application) {
     let store = Rc::new(RepositoryStore::new());
     let entries: Rc<RefCell<Vec<RepositoryEntry>>> = Rc::new(RefCell::new(Vec::new()));
 
-    let repo_list = gtk4::ListBox::builder()
-        .selection_mode(gtk4::SelectionMode::Single)
-        .css_classes(["boxed-list"])
-        .build();
-    repo_list.set_margin_top(12);
-    repo_list.set_margin_bottom(12);
-    repo_list.set_margin_start(12);
-    repo_list.set_margin_end(12);
+    let builder = gtk4::Builder::from_resource(&format!("{RESOURCE_PREFIX}/window.ui"));
+    let window: adw::ApplicationWindow = builder
+        .object("window")
+        .expect("window.ui defines `window`");
+    let sidebar_page: adw::NavigationPage = builder
+        .object("sidebar_page")
+        .expect("window.ui defines `sidebar_page`");
+    let sidebar_stack: gtk4::Stack = builder
+        .object("sidebar_stack")
+        .expect("window.ui defines `sidebar_stack`");
+    let repo_list: gtk4::ListBox = builder
+        .object("repo_list")
+        .expect("window.ui defines `repo_list`");
+    let add_button: gtk4::Button = builder
+        .object("add_button")
+        .expect("window.ui defines `add_button`");
 
-    let empty_status = adw::StatusPage::builder()
-        .icon_name("drive-harddisk-symbolic")
-        .title("No Repositories")
-        .description("Add a Repository to get started.")
-        .build();
-
-    let list_scroller = gtk4::ScrolledWindow::builder().child(&repo_list).build();
-
-    let sidebar_stack = gtk4::Stack::new();
-    sidebar_stack.add_named(&empty_status, Some("empty"));
-    sidebar_stack.add_named(&list_scroller, Some("list"));
-
-    let add_button = gtk4::Button::from_icon_name("list-add-symbolic");
-    add_button.set_tooltip_text(Some("Add Repository"));
-
-    let primary_menu = gio::Menu::new();
-    primary_menu.append(Some("About restic-gtk"), Some("app.about"));
-    let menu_button = gtk4::MenuButton::builder()
-        .icon_name("open-menu-symbolic")
-        .menu_model(&primary_menu)
-        .tooltip_text("Main Menu")
-        .build();
-
-    let sidebar_header = adw::HeaderBar::new();
-    sidebar_header.pack_end(&menu_button);
-    sidebar_header.pack_end(&add_button);
-
-    let sidebar_toolbar_view = adw::ToolbarView::new();
-    sidebar_toolbar_view.add_top_bar(&sidebar_header);
-    sidebar_toolbar_view.set_content(Some(&sidebar_stack));
-
-    let sidebar_page = adw::NavigationPage::builder()
-        .title("Repositories")
-        .child(&sidebar_toolbar_view)
-        .build();
-
-    let window = adw::ApplicationWindow::builder()
-        .application(app)
-        .title("restic-gtk")
-        .default_width(900)
-        .default_height(600)
-        .build();
+    window.set_application(Some(app));
 
     let detail_view = repository_detail::build(window.clone());
     let detail_page = adw::NavigationPage::builder()
@@ -171,13 +141,13 @@ fn present_about_dialog(parent: &adw::ApplicationWindow) {
     let debug_info = format!(
         "Version: {}\nTag: {}\nGit commit: {}\nBuild date: {}",
         env!("CARGO_PKG_VERSION"),
-        env!("RESTIC_GTK_TAG"),
-        env!("RESTIC_GTK_GIT_COMMIT"),
-        env!("RESTIC_GTK_BUILD_DATE"),
+        env!("RESTIC_VIEWER_TAG"),
+        env!("RESTIC_VIEWER_GIT_COMMIT"),
+        env!("RESTIC_VIEWER_BUILD_DATE"),
     );
 
     let about = adw::AboutDialog::builder()
-        .application_name("restic-gtk")
+        .application_name("Restic Viewer")
         .application_icon("drive-harddisk-symbolic")
         .developer_name("Bruno Paz")
         .version(env!("CARGO_PKG_VERSION"))
@@ -264,48 +234,21 @@ fn present_rename_dialog(
     current_name: String,
     reload_sidebar: Rc<dyn Fn()>,
 ) {
-    let name_row = adw::EntryRow::builder()
-        .title("Name")
-        .text(current_name.as_str())
-        .build();
-    let group = adw::PreferencesGroup::new();
-    group.add(&name_row);
+    let builder = gtk4::Builder::from_resource(&format!("{RESOURCE_PREFIX}/rename_dialog.ui"));
+    let dialog: adw::Dialog = builder
+        .object("dialog")
+        .expect("rename_dialog.ui defines `dialog`");
+    let name_row: adw::EntryRow = builder
+        .object("name_row")
+        .expect("rename_dialog.ui defines `name_row`");
+    let cancel_button: gtk4::Button = builder
+        .object("cancel_button")
+        .expect("rename_dialog.ui defines `cancel_button`");
+    let save_button: gtk4::Button = builder
+        .object("save_button")
+        .expect("rename_dialog.ui defines `save_button`");
 
-    let content = gtk4::Box::new(gtk4::Orientation::Vertical, 0);
-    let page = adw::PreferencesPage::new();
-    page.add(&group);
-    content.append(&page);
-
-    let toolbar_view = adw::ToolbarView::new();
-    toolbar_view.add_top_bar(
-        &adw::HeaderBar::builder()
-            .title_widget(&adw::WindowTitle::new("Rename Repository", ""))
-            .build(),
-    );
-    toolbar_view.set_content(Some(&content));
-
-    let dialog = adw::Dialog::builder()
-        .title("Rename Repository")
-        .content_width(360)
-        .child(&toolbar_view)
-        .build();
-
-    let cancel_button = gtk4::Button::builder().label("Cancel").build();
-    let save_button = gtk4::Button::builder()
-        .label("Save")
-        .css_classes(["suggested-action"])
-        .build();
-    let bottom_bar = gtk4::Box::new(gtk4::Orientation::Horizontal, 8);
-    bottom_bar.set_margin_top(8);
-    bottom_bar.set_margin_bottom(8);
-    bottom_bar.set_margin_start(12);
-    bottom_bar.set_margin_end(12);
-    bottom_bar.append(&cancel_button);
-    let spacer = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
-    spacer.set_hexpand(true);
-    bottom_bar.append(&spacer);
-    bottom_bar.append(&save_button);
-    toolbar_view.add_bottom_bar(&bottom_bar);
+    name_row.set_text(&current_name);
 
     cancel_button.connect_clicked({
         let dialog = dialog.clone();
@@ -341,7 +284,7 @@ fn present_remove_confirmation(
     let dialog = adw::AlertDialog::new(
         Some("Remove Repository?"),
         Some(&format!(
-            "\"{name}\" will be removed from restic-gtk. The Repository itself and its data are not affected."
+            "\"{name}\" will be removed from Restic Viewer. The Repository itself and its data are not affected."
         )),
     );
     dialog.add_response("cancel", "Cancel");

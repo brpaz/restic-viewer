@@ -1,0 +1,121 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  title: "Add Repository";
+  content-width: 420;
+
+  child: Adw.ToolbarView toolbar_view {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle {
+        title: "Add Repository";
+      };
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+
+      Adw.PreferencesPage {
+        Adw.PreferencesGroup {
+          Adw.EntryRow name_row {
+            title: "Name";
+          }
+
+          Adw.ComboRow backend_row {
+            title: "Repository Type";
+            model: Gtk.StringList {
+              strings ["Local", "SFTP", "S3-compatible"]
+            };
+          }
+        }
+
+        Adw.PreferencesGroup local_group {
+          Adw.ActionRow location_row {
+            title: "Location";
+            subtitle: "No folder selected";
+            activatable: true;
+
+            [suffix]
+            Gtk.Image {
+              icon-name: "folder-symbolic";
+            }
+          }
+        }
+
+        Adw.PreferencesGroup sftp_group {
+          visible: false;
+          description: "SFTP uses this machine's existing SSH key or agent — there is no password field here.";
+
+          Adw.EntryRow host_row {
+            title: "Host";
+          }
+
+          Adw.EntryRow sftp_path_row {
+            title: "Remote Path";
+          }
+
+          Adw.EntryRow user_row {
+            title: "Username";
+          }
+        }
+
+        Adw.PreferencesGroup s3_group {
+          visible: false;
+
+          Adw.EntryRow endpoint_row {
+            title: "Endpoint";
+          }
+
+          Adw.EntryRow bucket_row {
+            title: "Bucket";
+          }
+
+          Adw.EntryRow access_key_row {
+            title: "Access Key ID";
+          }
+
+          Adw.PasswordEntryRow secret_key_row {
+            title: "Secret Access Key";
+          }
+        }
+
+        Adw.PreferencesGroup {
+          Adw.PasswordEntryRow password_row {
+            title: "Repository Password";
+          }
+        }
+      }
+
+      Gtk.Label error_label {
+        css-classes: ["error"];
+        wrap: true;
+        visible: false;
+      }
+    };
+
+    [bottom]
+    Gtk.Box {
+      orientation: horizontal;
+      spacing: 8;
+      margin-top: 8;
+      margin-bottom: 8;
+      margin-start: 12;
+      margin-end: 12;
+
+      Gtk.Button cancel_button {
+        label: "Cancel";
+      }
+
+      Gtk.Box {
+        hexpand: true;
+      }
+
+      Gtk.Button add_button {
+        label: "Add";
+        styles ["suggested-action"]
+        sensitive: false;
+      }
+    }
+  };
+}

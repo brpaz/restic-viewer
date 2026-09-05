@@ -13,6 +13,8 @@ use restic_client::{
     RestoreRequest,
 };
 
+const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/restore_dialog.ui";
+
 /// Presents the Restore dialog for either a whole Snapshot (`include_paths` empty) or a
 /// specific set of selected Entries (`include_paths` non-empty).
 pub fn present(
@@ -22,80 +24,24 @@ pub fn present(
     include_paths: Vec<String>,
     title: &str,
 ) {
+    let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
+    let dialog: adw::Dialog = builder.object("dialog").expect("dialog");
+    let window_title: adw::WindowTitle = builder.object("window_title").expect("window_title");
+    let group: adw::PreferencesGroup = builder.object("group").expect("group");
+    let target_row: adw::ActionRow = builder.object("target_row").expect("target_row");
+    let original_location_row: adw::SwitchRow = builder
+        .object("original_location_row")
+        .expect("original_location_row");
+    let progress_bar: gtk4::ProgressBar = builder.object("progress_bar").expect("progress_bar");
+    let status_label: gtk4::Label = builder.object("status_label").expect("status_label");
+    let error_label: gtk4::Label = builder.object("error_label").expect("error_label");
+    let cancel_button: gtk4::Button = builder.object("cancel_button").expect("cancel_button");
+    let start_button: gtk4::Button = builder.object("start_button").expect("start_button");
+
+    dialog.set_title(title);
+    window_title.set_title(title);
+
     let chosen_target: Rc<RefCell<Option<PathBuf>>> = Rc::new(RefCell::new(None));
-
-    let target_row = adw::ActionRow::builder()
-        .title("Target Directory")
-        .subtitle("No folder selected")
-        .activatable(true)
-        .build();
-    target_row.add_suffix(&gtk4::Image::from_icon_name("folder-symbolic"));
-
-    let original_location_row = adw::SwitchRow::builder()
-        .title("Restore to Original Location")
-        .subtitle("Overwrites files at their original absolute path")
-        .build();
-
-    let group = adw::PreferencesGroup::new();
-    group.add(&target_row);
-    group.add(&original_location_row);
-
-    let progress_bar = gtk4::ProgressBar::builder()
-        .show_text(true)
-        .visible(false)
-        .build();
-    let status_label = gtk4::Label::builder().wrap(true).visible(false).build();
-    let error_label = gtk4::Label::builder()
-        .css_classes(["error"])
-        .wrap(true)
-        .visible(false)
-        .build();
-
-    let content = gtk4::Box::new(gtk4::Orientation::Vertical, 12);
-    content.set_margin_top(12);
-    content.set_margin_bottom(12);
-    content.set_margin_start(12);
-    content.set_margin_end(12);
-    let page = adw::PreferencesPage::new();
-    page.add(&group);
-    content.append(&page);
-    content.append(&progress_bar);
-    content.append(&status_label);
-    content.append(&error_label);
-
-    let toolbar_view = adw::ToolbarView::new();
-    toolbar_view.add_top_bar(
-        &adw::HeaderBar::builder()
-            .title_widget(&adw::WindowTitle::new(title, ""))
-            .build(),
-    );
-    toolbar_view.set_content(Some(&content));
-
-    let dialog = adw::Dialog::builder()
-        .title(title)
-        .content_width(440)
-        .child(&toolbar_view)
-        .can_close(true)
-        .build();
-
-    let cancel_button = gtk4::Button::builder().label("Cancel").build();
-    let start_button = gtk4::Button::builder()
-        .label("Restore")
-        .css_classes(["suggested-action"])
-        .sensitive(false)
-        .build();
-
-    let bottom_bar = gtk4::Box::new(gtk4::Orientation::Horizontal, 8);
-    bottom_bar.set_margin_top(8);
-    bottom_bar.set_margin_bottom(8);
-    bottom_bar.set_margin_start(12);
-    bottom_bar.set_margin_end(12);
-    bottom_bar.append(&cancel_button);
-    let spacer = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
-    spacer.set_hexpand(true);
-    bottom_bar.append(&spacer);
-    bottom_bar.append(&start_button);
-    toolbar_view.add_bottom_bar(&bottom_bar);
 
     let update_sensitivity = {
         let original_location_row = original_location_row.clone();

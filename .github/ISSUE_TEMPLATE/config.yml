@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://brpaz.github.io/restic-gtk/
+    url: https://brpaz.github.io/restic-viewer/
     about: Check the docs before filing an issue — your question might already be answered there.

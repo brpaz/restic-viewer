@@ -1,0 +1,83 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  content-width: 440;
+  can-close: true;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle window_title {};
+    }
+
+    content: Gtk.Box {
+      orientation: vertical;
+      spacing: 12;
+      margin-top: 12;
+      margin-bottom: 12;
+      margin-start: 12;
+      margin-end: 12;
+
+      Adw.PreferencesPage {
+        Adw.PreferencesGroup group {
+          Adw.ActionRow target_row {
+            title: "Target Directory";
+            subtitle: "No folder selected";
+            activatable: true;
+
+            [suffix]
+            Gtk.Image {
+              icon-name: "folder-symbolic";
+            }
+          }
+
+          Adw.SwitchRow original_location_row {
+            title: "Restore to Original Location";
+            subtitle: "Overwrites files at their original absolute path";
+          }
+        }
+      }
+
+      Gtk.ProgressBar progress_bar {
+        show-text: true;
+        visible: false;
+      }
+
+      Gtk.Label status_label {
+        wrap: true;
+        visible: false;
+      }
+
+      Gtk.Label error_label {
+        css-classes: ["error"];
+        wrap: true;
+        visible: false;
+      }
+    };
+
+    [bottom]
+    Gtk.Box {
+      orientation: horizontal;
+      spacing: 8;
+      margin-top: 8;
+      margin-bottom: 8;
+      margin-start: 12;
+      margin-end: 12;
+
+      Gtk.Button cancel_button {
+        label: "Cancel";
+      }
+
+      Gtk.Box {
+        hexpand: true;
+      }
+
+      Gtk.Button start_button {
+        label: "Restore";
+        styles ["suggested-action"]
+        sensitive: false;
+      }
+    }
+  };
+}

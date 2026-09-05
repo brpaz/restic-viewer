@@ -1,8 +1,8 @@
 version: "3"
 
 vars:
-  MANIFEST: dev.brunopaz.ResticGtk.json
-  APP_ID: dev.brunopaz.ResticGtk
+  MANIFEST: dev.brunopaz.ResticViewer.json
+  APP_ID: dev.brunopaz.ResticViewer
 
 tasks:
   default:
@@ -12,17 +12,17 @@ tasks:
   build:
     desc: Build the app in debug mode
     cmds:
-      - cargo build -p restic-gtk
+      - cargo build -p restic-viewer
 
   build:release:
     desc: Build the app in release mode
     cmds:
-      - cargo build --release -p restic-gtk
+      - cargo build --release -p restic-viewer
 
   run:
     desc: Run the app natively (not sandboxed)
     cmds:
-      - cargo run -p restic-gtk
+      - cargo run -p restic-viewer
 
   test:
     desc: Run the full workspace test suite
