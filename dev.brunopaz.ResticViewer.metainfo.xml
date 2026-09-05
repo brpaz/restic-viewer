@@ -29,7 +29,7 @@
     <category>System</category>
     <category>Filesystem</category>
   </categories>
-  <icon type="stock">drive-harddisk-symbolic</icon>
+  <icon type="stock">dev.brunopaz.ResticViewer</icon>
   <url type="homepage">https://brpaz.github.io/restic-viewer/</url>
   <url type="bugtracker">https://github.com/brpaz/restic-viewer/issues</url>
   <content_rating type="oars-1.1" />
