@@ -15,7 +15,6 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 - **Restore what you need** — pick individual files or a whole Snapshot, restore to a new directory or back to the original path.
 - **Live progress, real cancel** — restores stream restic's own progress and can be stopped mid-run.
 - **Secrets stay in the keyring** — Repository passwords and Backend credentials live in the system keyring (libsecret), never in a config file.
-- **Sandboxed by design** — ships as a Flatpak; Repository access is scoped to `home`, removable media, and `/mnt`, never the whole host filesystem.
 - **Bundled restic** — the Flatpak bundles its own restic build, so it works the moment it's installed.
 
 ## Install
@@ -36,6 +35,10 @@ task run
 ```
 
 Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and `restic` on `$PATH`. Full prerequisites, running tests, building the Flatpak, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## AI Usage
+
+This project is pure vibe coded — [Claude Code](https://claude.com/claude-code) wrote essentially all of it, prompted and reviewed by a human. It scratches a personal itch (browsing and restoring my own restic Repositories without reaching for the CLI) rather than being built for wide adoption, so treat it accordingly.
 
 ## Contributing
 
