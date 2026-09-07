@@ -57,6 +57,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
   <img src="https://contrib.rocks/image?repo=brpaz/restic-viewer" alt="Contributors" />
 </a>
 
+## Support
+
+If Restic Viewer is useful to you, consider [sponsoring on GitHub](https://github.com/sponsors/brpaz).
+
 ## License
 
 This repo is MIT licensed. See [LICENSE.md](LICENSE.md).
