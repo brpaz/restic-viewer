@@ -29,9 +29,13 @@ jobs:
         run: |
           dnf install -y gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler restic hostname
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      # Toolchain version/components come from rust-toolchain.toml, not a hardcoded
+      # channel here — rustup reads it automatically on the first cargo/rustc
+      # invocation below, so this stays in sync with local dev and devenv for free.
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - uses: Swatinem/rust-cache@v2
 
@@ -128,7 +132,10 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq curl gcc pkg-config libgtk-4-dev libadwaita-1-dev libsecret-1-dev blueprint-compiler ca-certificates
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - uses: Swatinem/rust-cache@v2
 
@@ -162,7 +169,10 @@ jobs:
         run: |
           dnf install -y gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler curl
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - uses: Swatinem/rust-cache@v2
 

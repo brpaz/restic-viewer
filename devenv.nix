@@ -5,8 +5,7 @@
   # gtk4-sys etc.) and pkg-config to find the dev headers below.
   languages.rust = {
     enable = true;
-    channel = "stable";
-    components = [ "rustc" "cargo" "clippy" "rustfmt" "rust-analyzer" ];
+    toolchainFile = ./rust-toolchain.toml;
   };
 
   packages = [
