@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.0.1
 
       - name: Regenerate and diff build-aux/cargo-sources.json
         run: |
