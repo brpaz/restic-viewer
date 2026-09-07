@@ -21,6 +21,13 @@ Adw.NavigationPage snapshot_list_page {
   };
 }
 
+Adw.StatusPage snapshot_list_empty_status {
+  icon-name: "folder-symbolic";
+  title: _("No Snapshots");
+  description: _("This Repository doesn’t have any Snapshots yet.");
+  vexpand: true;
+}
+
 Gtk.Stack stack {
   Gtk.StackPage {
     name: "placeholder";

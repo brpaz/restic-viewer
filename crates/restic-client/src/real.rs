@@ -164,7 +164,11 @@ impl ResticClient for RealResticClient {
         ];
         for include in &request.include_paths {
             args.push("--include".to_string());
-            args.push(include.clone());
+            // restic's --include only matches a directory node exactly (no descendants)
+            // when the pattern has no leading '/', even though `restic ls` always reports
+            // paths with one — with the leading '/' kept, an exact non-glob match restores
+            // nothing.
+            args.push(include.strip_prefix('/').unwrap_or(include).to_string());
         }
 
         if control.is_cancelled() {

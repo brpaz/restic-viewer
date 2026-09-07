@@ -144,6 +144,7 @@ pub fn present(
             let status_label = status_label.clone();
             let error_label = error_label.clone();
             let cancel_button = cancel_button.clone();
+            let control = control.clone();
 
             glib::spawn_future_local(async move {
                 let progress_bar_cb = progress_bar.clone();
@@ -183,6 +184,7 @@ pub fn present(
                         cancel_button.set_label("Close");
                     }
                 }
+                *control.borrow_mut() = None;
                 let _ = &dialog;
             });
         }

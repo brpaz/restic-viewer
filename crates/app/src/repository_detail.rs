@@ -44,6 +44,10 @@ pub fn build(parent: adw::ApplicationWindow) -> DetailView {
         .object("snapshot_list_page")
         .expect("snapshot_list_page");
     let snapshot_list: gtk4::ListBox = builder.object("snapshot_list").expect("snapshot_list");
+    let snapshot_list_empty_status: adw::StatusPage = builder
+        .object("snapshot_list_empty_status")
+        .expect("snapshot_list_empty_status");
+    snapshot_list.set_placeholder(Some(&snapshot_list_empty_status));
     let nav_view: adw::NavigationView = builder.object("nav_view").expect("nav_view");
     let error_status: adw::StatusPage = builder.object("error_status").expect("error_status");
     let unlock_password_row: adw::PasswordEntryRow = builder
@@ -257,7 +261,7 @@ fn populate_snapshot_list(
                 let title = snapshot.time.get(..19).unwrap_or(&snapshot.time);
                 let page = adw::NavigationPage::builder()
                     .title(title)
-                    .child(&wrap_in_toolbar(tree_widget))
+                    .child(&tree_widget)
                     .build();
                 nav_view.push(&page);
             }
@@ -266,11 +270,4 @@ fn populate_snapshot_list(
         list.append(&row);
     }
     let _ = list_page; // kept for symmetry / future title updates
-}
-
-fn wrap_in_toolbar(content: gtk4::Widget) -> gtk4::Widget {
-    let toolbar_view = adw::ToolbarView::new();
-    toolbar_view.add_top_bar(&adw::HeaderBar::new());
-    toolbar_view.set_content(Some(&content));
-    toolbar_view.upcast()
 }

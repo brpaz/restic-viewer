@@ -142,6 +142,52 @@ fn restores_the_whole_snapshot() {
 }
 
 #[test]
+fn restores_only_the_included_path() {
+    let fixture = build_fixture();
+    let repo = connection(&fixture);
+    let client = RealResticClient::system();
+
+    let snapshots = glib::MainContext::new()
+        .block_on(client.list_snapshots(&repo))
+        .expect("list_snapshots");
+    let snapshot_id = snapshots[0].id.clone();
+
+    let target = tempfile::tempdir().unwrap();
+    // Absolute path with a leading '/', matching what `restic ls --json` (and thus
+    // entry_tree's selection) reports.
+    let included = fixture
+        .source_path
+        .join("subdir/file2.txt")
+        .to_str()
+        .unwrap()
+        .to_string();
+    let request = restic_client::RestoreRequest {
+        snapshot_id,
+        include_paths: vec![included],
+        target: target.path().to_path_buf(),
+    };
+
+    let outcome = glib::MainContext::new()
+        .block_on(client.restore(&repo, &request, |_| {}, RestoreControl::new()))
+        .expect("restore");
+
+    assert!(
+        outcome.files_restored > 0,
+        "expected the included file to be restored, got {outcome:?}"
+    );
+    let restored_file = target
+        .path()
+        .join(fixture.source_path.strip_prefix("/").unwrap())
+        .join("subdir/file2.txt");
+    assert_eq!(std::fs::read_to_string(restored_file).unwrap(), "world");
+    let not_restored = target
+        .path()
+        .join(fixture.source_path.strip_prefix("/").unwrap())
+        .join("file1.txt");
+    assert!(!not_restored.exists());
+}
+
+#[test]
 fn cancelling_before_it_starts_stops_the_restore() {
     let fixture = build_fixture();
     let repo = connection(&fixture);
