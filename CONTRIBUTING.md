@@ -10,6 +10,8 @@
 
 ## Prerequisites
 
+The fastest way in: with [devenv](https://devenv.sh/) and [Nix](https://nixos.org/) installed, `devenv shell` (or `direnv allow` if you use [direnv](https://direnv.net/) — this repo ships an `.envrc`) drops you into a shell with every tool below already on `$PATH`, including `task`, `restic`, `blueprint-compiler`, `flatpak-builder`, `uv`, `nfpm`, and the Git hooks installed automatically. See `devenv.nix` for exactly what it provides. The rest of this section is the manual, per-distro equivalent if you'd rather not use it.
+
 - [Rust](https://rustup.rs/) (stable toolchain)
 - GTK4, libadwaita, and libsecret development headers, plus [`blueprint-compiler`](https://gitlab.gnome.org/GNOME/blueprint-compiler) (compiles the `.blp` UI templates at build time — see [ADR-0005](docs/adr/0005-blueprint-for-static-ui-layout.md)):
 
@@ -94,6 +96,7 @@ task flatpak:run
 | `task flatpak:sources` | Regenerate `build-aux/cargo-sources.json` after touching `Cargo.toml` |
 | `task flatpak:sources:check` | Fail if `cargo-sources.json` is stale (what CI runs) |
 | `task flatpak:build` / `flatpak:install` / `flatpak:run` | Build / install / run the Flatpak |
+| `task package:deb` / `task package:rpm` | Build a `.deb` / `.rpm` with nfpm (see [ADR-0007](docs/adr/0007-nfpm-for-deb-rpm-packages.md)) |
 | `task hooks:install` | Install the Git hooks (Lefthook) |
 
 Run `task ci` before opening a PR — it's the same fmt/lint/test sequence `.github/workflows/ci.yml` runs.
@@ -104,10 +107,11 @@ Run `task ci` before opening a PR — it's the same fmt/lint/test sequence `.git
 task hooks:install
 ```
 
-Installs [Lefthook](https://lefthook.dev/)-managed hooks (`lefthook.yml`):
+Installs [Lefthook](https://lefthook.dev/)-managed hooks (`lefthook.yml`) — run automatically on shell entry if you're using devenv:
 
-- **pre-commit** — `cargo fmt --check` and `cargo clippy` on staged Rust files.
+- **pre-commit** — `cargo fmt --check` and `cargo clippy` on staged Rust files; regenerates and stages `build-aux/cargo-sources.json` when `Cargo.lock` changes.
 - **commit-msg** — validates the message against [Conventional Commits](https://www.conventionalcommits.org/) via `commitlint-rs` (`.commitlintrc.yml`).
+- **pre-push** — re-checks `build-aux/cargo-sources.json` isn't stale, as a backstop for commits made with `--no-verify`.
 
 ## Project structure and conventions
 

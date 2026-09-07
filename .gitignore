@@ -6,3 +6,7 @@
 /site/
 /.cache/
 /.claude/
+/.devenv/
+/.devenv.flake.nix
+devenv.local.nix
+devenv.local.yaml
