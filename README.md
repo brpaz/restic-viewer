@@ -59,7 +59,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Support
 
-If Restic Viewer is useful to you, consider [sponsoring on GitHub](https://github.com/sponsors/brpaz).
+If Restic Viewer is useful to you, consider [sponsoring on GitHub](https://github.com/sponsors/brpaz) or [buying me a coffee](https://buymeacoffee.com/z1bu6asgv).
 
 ## License
 
