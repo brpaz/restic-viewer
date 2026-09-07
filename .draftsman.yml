@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://brpaz.github.io/draftsman/schema/config.schema.json
+
+mode: single
+
+tag-format: "v{{version}}"
+
+categories:
+  - type: feat
+    section: Features
+  - type: fix
+    section: Bug Fixes
+  - type: perf
+    section: Performance
+  - type: refactor
+    section: Refactoring
+  - type: docs
+    section: Documentation
+
+footer: true
