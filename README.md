@@ -15,7 +15,7 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 - **Restore what you need** — pick individual files or a whole Snapshot, restore to a new directory or back to the original path.
 - **Live progress, real cancel** — restores stream restic's own progress and can be stopped mid-run.
 - **Secrets stay in the keyring** — Repository passwords and Backend credentials live in the system keyring (libsecret), never in a config file.
-- **Sandboxed by design** — ships as a Flatpak with no `--filesystem=host`; file access goes through the portal file chooser.
+- **Sandboxed by design** — ships as a Flatpak; Repository access is scoped to `home`, removable media, and `/mnt`, never the whole host filesystem.
 - **Bundled restic** — the Flatpak bundles its own restic build, so it works the moment it's installed.
 
 ## Install
@@ -27,13 +27,19 @@ flatpak install --user restic-viewer.flatpak
 flatpak run dev.brunopaz.ResticViewer
 ```
 
-## Documentation
+## Build from Source
 
-Full documentation, including architecture decisions: **[brpaz.github.io/restic-viewer](https://brpaz.github.io/restic-viewer/)**.
+```bash
+git clone https://github.com/brpaz/restic-viewer.git
+cd restic-viewer
+task run
+```
+
+Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and `restic` on `$PATH`. Full prerequisites, running tests, building the Flatpak, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
-Building from source, running tests, and the Taskfile reference live in [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
