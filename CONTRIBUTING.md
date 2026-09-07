@@ -111,7 +111,6 @@ Installs [Lefthook](https://lefthook.dev/)-managed hooks (`lefthook.yml`) — ru
 
 - **pre-commit** — `cargo fmt --check` and `cargo clippy` on staged Rust files; regenerates and stages `build-aux/cargo-sources.json` when `Cargo.lock` changes.
 - **commit-msg** — validates the message against [Conventional Commits](https://www.conventionalcommits.org/) via `commitlint-rs` (`.commitlintrc.yml`).
-- **pre-push** — re-checks `build-aux/cargo-sources.json` isn't stale, as a backstop for commits made with `--no-verify`.
 
 ## Project structure and conventions
 
