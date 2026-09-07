@@ -11,13 +11,58 @@
 ## Prerequisites
 
 - [Rust](https://rustup.rs/) (stable toolchain)
-- GTK4, libadwaita, and libsecret development headers
-  - Fedora: `gtk4-devel libadwaita-devel libsecret-devel`
-  - Debian/Ubuntu: `libgtk-4-dev libadwaita-1-dev libsecret-1-dev`
-- [`restic`](https://restic.net/) on `$PATH` for local development (the Flatpak bundles its own; native builds resolve whatever `restic` is installed)
-- [Task](https://taskfile.dev/) (optional, but every command below is a task)
+- GTK4, libadwaita, and libsecret development headers, plus [`blueprint-compiler`](https://gitlab.gnome.org/GNOME/blueprint-compiler) (compiles the `.blp` UI templates at build time — see [ADR-0005](docs/adr/0005-blueprint-for-static-ui-layout.md)):
 
-Building the Flatpak locally additionally requires [`flatpak-builder`](https://docs.flatpak.org/) and [`uv`](https://docs.astral.sh/uv/) (used to regenerate vendored Cargo sources).
+  ```bash
+  # Fedora
+  sudo dnf install gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler
+
+  # Debian/Ubuntu
+  sudo apt install libgtk-4-dev libadwaita-1-dev libsecret-1-dev blueprint-compiler
+
+  # Arch
+  sudo pacman -S gtk4 libadwaita libsecret blueprint-compiler
+  ```
+
+- [`restic`](https://restic.net/) on `$PATH` for local development (the Flatpak bundles its own; native builds resolve whatever `restic` is installed):
+
+  ```bash
+  # Fedora
+  sudo dnf install restic
+
+  # Debian/Ubuntu
+  sudo apt install restic
+
+  # Arch
+  sudo pacman -S restic
+  ```
+
+- [Task](https://taskfile.dev/) (optional, but every command below is a task):
+
+  ```bash
+  # Fedora
+  sudo dnf install task
+
+  # Debian/Ubuntu — no apt package; use the official install script
+  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
+  # Arch
+  sudo pacman -S go-task
+  ```
+
+Building the Flatpak locally additionally requires [`flatpak-builder`](https://docs.flatpak.org/) and [`uv`](https://docs.astral.sh/uv/) (used to regenerate vendored Cargo sources):
+
+```bash
+# Fedora
+sudo dnf install flatpak-builder uv
+
+# Debian/Ubuntu — flatpak-builder is packaged, uv isn't; use the official install script
+sudo apt install flatpak-builder
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Arch
+sudo pacman -S flatpak-builder uv
+```
 
 Committing additionally requires [Lefthook](https://lefthook.dev/) and [`commitlint-rs`](https://github.com/KeisukeYamashita/commitlint-rs) (`cargo install commitlint-rs`) — see [Git hooks](#git-hooks) below.
 

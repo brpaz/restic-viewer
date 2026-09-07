@@ -31,10 +31,10 @@ flatpak run dev.brunopaz.ResticViewer
 ```bash
 git clone https://github.com/brpaz/restic-viewer.git
 cd restic-viewer
-task run
+task flatpak:install
 ```
 
-Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and `restic` on `$PATH`. Full prerequisites, running tests, building the Flatpak, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
+Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and [`flatpak-builder`](https://docs.flatpak.org/). Full prerequisites, running tests, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## AI Usage
 
