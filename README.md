@@ -51,6 +51,12 @@ This project is pure vibe coded — [Claude Code](https://claude.com/claude-code
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Contributors
+
+<a href="https://github.com/brpaz/restic-viewer/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=brpaz/restic-viewer" alt="Contributors" />
+</a>
+
 ## License
 
-[MIT](LICENSE.md).
+This repo is MIT licensed. See [LICENSE.md](LICENSE.md).
