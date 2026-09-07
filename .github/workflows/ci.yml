@@ -103,7 +103,7 @@ jobs:
   flatpak-asset:
     name: Attach Flatpak bundle to release
     needs: flatpak-build
-    if: github.event_name == 'release' && success()
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,7 +120,7 @@ jobs:
   build-deb:
     name: Build .deb package
     needs: test
-    if: github.event_name == 'release' && success()
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     # Needs libadwaita >= 1.6 (see the "test" job above) — trixie is the only current
     # Debian release that ships it, and building there keeps the package's glibc/lib
@@ -162,7 +162,7 @@ jobs:
   build-rpm:
     name: Build .rpm package
     needs: test
-    if: github.event_name == 'release' && success()
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     container: fedora:46
     steps:
@@ -200,7 +200,7 @@ jobs:
   native-packages-asset:
     name: Attach .deb/.rpm packages to release
     needs: [build-deb, build-rpm]
-    if: github.event_name == 'release' && success()
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
