@@ -1,0 +1,49 @@
+name: restic-viewer
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: Bruno Paz
+vendor: Bruno Paz
+homepage: https://github.com/brpaz/restic-viewer
+license: MIT
+description: |
+  Native GNOME (GTK4 + libadwaita) app for browsing and restoring restic backup
+  repositories. Attaches to Repositories you already back up elsewhere and lets
+  you browse their Snapshots and file trees, and restore what you need.
+
+contents:
+  - src: ./target/release/restic-viewer
+    dst: /usr/bin/restic-viewer
+    file_info:
+      mode: 0755
+
+  - src: ./dev.brunopaz.ResticViewer.desktop
+    dst: /usr/share/applications/dev.brunopaz.ResticViewer.desktop
+
+  - src: ./dev.brunopaz.ResticViewer.metainfo.xml
+    dst: /usr/share/metainfo/dev.brunopaz.ResticViewer.metainfo.xml
+
+  - src: ./data/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg
+
+# restic itself is a regular dependency here (unlike the Flatpak, which bundles
+# its own build) — native packages should pull it from the distro like any
+# other tool, not vendor it.
+depends:
+  - restic
+
+overrides:
+  deb:
+    depends:
+      - restic
+      - libgtk-4-1
+      - libadwaita-1-0
+      - libsecret-1-0
+  rpm:
+    depends:
+      - restic
+      - gtk4
+      - libadwaita
+      - libsecret

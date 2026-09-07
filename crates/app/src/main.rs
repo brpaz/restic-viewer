@@ -20,10 +20,14 @@ use config::{RepositoryEntry, RepositoryStore};
 const APP_ID: &str = "dev.brunopaz.ResticViewer";
 const RESOURCE_PREFIX: &str = "/dev/brunopaz/ResticViewer";
 
-/// Matches the .mo filename the Flatpak manifest installs under
-/// `/app/share/locale/<lang>/LC_MESSAGES/` — see ADR-0006.
+/// Matches the .mo filename installed under `<LOCALEDIR>/<lang>/LC_MESSAGES/` —
+/// see ADR-0006. Defaults to the Flatpak's fixed `/app` prefix; native .deb/.rpm
+/// packages build with `LOCALEDIR=/usr/share/locale` set instead (see nfpm.yaml).
 const GETTEXT_PACKAGE: &str = "restic-viewer";
-const LOCALEDIR: &str = "/app/share/locale";
+const LOCALEDIR: &str = match option_env!("LOCALEDIR") {
+    Some(dir) => dir,
+    None => "/app/share/locale",
+};
 
 type ReloadSidebarCell = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 

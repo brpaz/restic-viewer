@@ -111,3 +111,96 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${{ github.event.release.tag_name }}" restic-viewer.flatpak --repo "${{ github.repository }}"
+
+  build-deb:
+    name: Build .deb package
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    # Needs libadwaita >= 1.6 (see the "test" job above) — trixie is the only current
+    # Debian release that ships it, and building there keeps the package's glibc/lib
+    # requirements aligned with what current Debian/Ubuntu already provide.
+    container: debian:trixie
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq curl gcc pkg-config libgtk-4-dev libadwaita-1-dev libsecret-1-dev blueprint-compiler ca-certificates
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install nfpm
+        run: curl -sSL https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin nfpm
+
+      - name: Build release binary
+        env:
+          LOCALEDIR: /usr/share/locale
+        run: cargo build --release -p restic-viewer
+
+      - name: Package .deb
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: VERSION="${RELEASE_TAG#v}" nfpm package --config nfpm.yaml --packager deb --target restic-viewer.deb
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: restic-viewer-deb
+          path: restic-viewer.deb
+
+  build-rpm:
+    name: Build .rpm package
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    container: fedora:46
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          dnf install -y gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler curl
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install nfpm
+        run: curl -sSL https://github.com/goreleaser/nfpm/releases/download/v2.47.0/nfpm_2.47.0_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin nfpm
+
+      - name: Build release binary
+        env:
+          LOCALEDIR: /usr/share/locale
+        run: cargo build --release -p restic-viewer
+
+      - name: Package .rpm
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: VERSION="${RELEASE_TAG#v}" nfpm package --config nfpm.yaml --packager rpm --target restic-viewer.rpm
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: restic-viewer-rpm
+          path: restic-viewer.rpm
+
+  native-packages-asset:
+    name: Attach .deb/.rpm packages to release
+    needs: [build-deb, build-rpm]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: restic-viewer-deb
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: restic-viewer-rpm
+
+      - name: Upload packages to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" restic-viewer.deb restic-viewer.rpm --repo "${{ github.repository }}"

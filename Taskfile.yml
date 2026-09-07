@@ -78,6 +78,18 @@ tasks:
     cmds:
       - flatpak run {{.APP_ID}}
 
+  package:deb:
+    desc: Build the app and package it as a .deb (requires nfpm on $PATH; run on a Debian/Ubuntu-family host with libadwaita >= 1.6)
+    cmds:
+      - LOCALEDIR=/usr/share/locale cargo build --release -p restic-viewer
+      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager deb --target restic-viewer.deb
+
+  package:rpm:
+    desc: Build the app and package it as a .rpm (requires nfpm on $PATH; run on a Fedora-family host)
+    cmds:
+      - LOCALEDIR=/usr/share/locale cargo build --release -p restic-viewer
+      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager rpm --target restic-viewer.rpm
+
   hooks:install:
     desc: Install Git hooks (lefthook + commitlint-rs must be on $PATH)
     cmds:

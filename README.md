@@ -15,15 +15,22 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 - **Restore what you need** — pick individual files or a whole Snapshot, restore to a new directory or back to the original path.
 - **Live progress, real cancel** — restores stream restic's own progress and can be stopped mid-run.
 - **Secrets stay in the keyring** — Repository passwords and Backend credentials live in the system keyring (libsecret), never in a config file.
-- **Bundled restic** — the Flatpak bundles its own restic build, so it works the moment it's installed.
+- **Bundled restic (Flatpak only)** — the Flatpak bundles its own restic build, so it works the moment it's installed; the `.deb`/`.rpm` packages depend on your distro's `restic` package instead.
 
 ## Install
 
-Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-viewer/releases/latest):
+Download the package for your system from the [latest release](https://github.com/brpaz/restic-viewer/releases/latest):
 
 ```bash
+# Flatpak
 flatpak install --user restic-viewer.flatpak
 flatpak run dev.brunopaz.ResticViewer
+
+# Debian/Ubuntu
+sudo apt install ./restic-viewer.deb
+
+# Fedora
+sudo dnf install ./restic-viewer.rpm
 ```
 
 ## Build from Source
