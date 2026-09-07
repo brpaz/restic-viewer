@@ -225,6 +225,13 @@ fn cancelling_before_it_starts_stops_the_restore() {
 fn a_permission_denied_target_surfaces_restics_own_error_text() {
     use std::os::unix::fs::PermissionsExt;
 
+    if is_root() {
+        eprintln!(
+            "skipping: running as root, which ignores the permission bits this test relies on"
+        );
+        return;
+    }
+
     let fixture = build_fixture();
     let repo = connection(&fixture);
     let client = RealResticClient::system();
@@ -263,6 +270,16 @@ fn a_permission_denied_target_surfaces_restics_own_error_text() {
         }
         other => panic!("expected NonZeroExit with restic's permission error, got {other:?}"),
     }
+}
+
+fn is_root() -> bool {
+    Command::new("id")
+        .arg("-u")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim() == "0")
+        .unwrap_or(false)
 }
 
 fn whoami_hostname() -> String {

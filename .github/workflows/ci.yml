@@ -18,13 +18,16 @@ jobs:
   test:
     name: Format, lint, test
     runs-on: ubuntu-latest
+    # ubuntu-latest's own libadwaita-1-dev tops out at 1.5, but the app depends on
+    # libadwaita's "v1_6" feature (Adw.Spinner) — Fedora tracks current GNOME closely
+    # enough to satisfy it, and matches the Flatpak module's own GNOME Platform target.
+    container: fedora:46
     steps:
       - uses: actions/checkout@v7
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libgtk-4-dev libadwaita-1-dev libsecret-1-dev
+          dnf install -y gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler restic hostname
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -72,6 +75,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           version="$RELEASE_TAG"
           [ -n "$version" ] || version=$(git describe --tags --always --dirty)
           commit=$(git rev-parse --short HEAD)
