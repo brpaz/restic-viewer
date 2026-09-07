@@ -19,10 +19,10 @@ contents:
     file_info:
       mode: 0755
 
-  - src: ./dev.brunopaz.ResticViewer.desktop
+  - src: ./data/dev.brunopaz.ResticViewer.desktop
     dst: /usr/share/applications/dev.brunopaz.ResticViewer.desktop
 
-  - src: ./dev.brunopaz.ResticViewer.metainfo.xml
+  - src: ./data/dev.brunopaz.ResticViewer.metainfo.xml
     dst: /usr/share/metainfo/dev.brunopaz.ResticViewer.metainfo.xml
 
   - src: ./data/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg
