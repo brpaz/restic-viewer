@@ -2,17 +2,17 @@ using Gtk 4.0;
 using Adw 1;
 
 menu primary_menu {
-  item ("About Restic Viewer", "app.about")
+  item (_("About Restic Viewer"), "app.about")
 }
 
 Adw.ApplicationWindow window {
-  title: "Restic Viewer";
+  title: _("Restic Viewer");
   default-width: 900;
   default-height: 600;
 }
 
 Adw.NavigationPage sidebar_page {
-  title: "Repositories";
+  title: _("Repositories");
 
   child: Adw.ToolbarView {
     [top]
@@ -20,14 +20,14 @@ Adw.NavigationPage sidebar_page {
       [end]
       Gtk.MenuButton menu_button {
         icon-name: "open-menu-symbolic";
-        tooltip-text: "Main Menu";
+        tooltip-text: _("Main Menu");
         menu-model: primary_menu;
       }
 
       [end]
       Gtk.Button add_button {
         icon-name: "list-add-symbolic";
-        tooltip-text: "Add Repository";
+        tooltip-text: _("Add Repository");
       }
     }
 
@@ -37,8 +37,8 @@ Adw.NavigationPage sidebar_page {
 
         child: Adw.StatusPage {
           icon-name: "drive-harddisk-symbolic";
-          title: "No Repositories";
-          description: "Add a Repository to get started.";
+          title: _("No Repositories");
+          description: _("Add a Repository to get started.");
         };
       }
 

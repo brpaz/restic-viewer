@@ -2,14 +2,14 @@ using Gtk 4.0;
 using Adw 1;
 
 Adw.Dialog dialog {
-  title: "Rename Repository";
+  title: _("Rename Repository");
   content-width: 360;
 
   child: Adw.ToolbarView {
     [top]
     Adw.HeaderBar {
       title-widget: Adw.WindowTitle {
-        title: "Rename Repository";
+        title: _("Rename Repository");
       };
     }
 
@@ -19,7 +19,7 @@ Adw.Dialog dialog {
       Adw.PreferencesPage {
         Adw.PreferencesGroup {
           Adw.EntryRow name_row {
-            title: "Name";
+            title: _("Name");
           }
         }
       }
@@ -35,7 +35,7 @@ Adw.Dialog dialog {
       margin-end: 12;
 
       Gtk.Button cancel_button {
-        label: "Cancel";
+        label: _("Cancel");
       }
 
       Gtk.Box {
@@ -43,7 +43,7 @@ Adw.Dialog dialog {
       }
 
       Gtk.Button save_button {
-        label: "Save";
+        label: _("Save");
         styles ["suggested-action"]
       }
     }

@@ -2,7 +2,7 @@ using Gtk 4.0;
 using Adw 1;
 
 Adw.NavigationPage snapshot_list_page {
-  title: "Snapshots";
+  title: _("Snapshots");
 
   child: Adw.ToolbarView {
     [top]
@@ -31,8 +31,8 @@ Gtk.Stack stack {
 
       content: Adw.StatusPage {
         icon-name: "folder-symbolic";
-        title: "Select a Repository";
-        description: "Choose a Repository from the sidebar to browse its Snapshots.";
+        title: _("Select a Repository");
+        description: _("Choose a Repository from the sidebar to browse its Snapshots.");
       };
     };
   }
@@ -66,7 +66,7 @@ Gtk.Stack stack {
 
       content: Adw.StatusPage error_status {
         icon-name: "dialog-warning-symbolic";
-        title: "Couldn't Open Repository";
+        title: _("Couldn't Open Repository");
       };
     };
   }
@@ -87,18 +87,18 @@ Gtk.Stack stack {
 
         Adw.StatusPage {
           icon-name: "dialog-password-symbolic";
-          title: "Repository Locked";
-          description: "Enter the Repository Password to continue.";
+          title: _("Repository Locked");
+          description: _("Enter the Repository Password to continue.");
         }
 
         Adw.PreferencesGroup {
           Adw.PasswordEntryRow unlock_password_row {
-            title: "Repository Password";
+            title: _("Repository Password");
           }
         }
 
         Gtk.Button unlock_button {
-          label: "Unlock";
+          label: _("Unlock");
           styles ["suggested-action"]
           halign: end;
         }

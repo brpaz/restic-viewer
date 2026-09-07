@@ -8,6 +8,9 @@ mod restore_dialog;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use gettextrs::{
+    LocaleCategory, bind_textdomain_codeset, bindtextdomain, gettext, setlocale, textdomain,
+};
 use gtk4::prelude::*;
 use libadwaita as adw;
 use libadwaita::prelude::*;
@@ -17,10 +20,21 @@ use config::{RepositoryEntry, RepositoryStore};
 const APP_ID: &str = "dev.brunopaz.ResticViewer";
 const RESOURCE_PREFIX: &str = "/dev/brunopaz/ResticViewer";
 
+/// Matches the .mo filename the Flatpak manifest installs under
+/// `/app/share/locale/<lang>/LC_MESSAGES/` — see ADR-0006.
+const GETTEXT_PACKAGE: &str = "restic-viewer";
+const LOCALEDIR: &str = "/app/share/locale";
+
 type ReloadSidebarCell = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
 fn main() -> glib::ExitCode {
     gio::resources_register_include!("compiled.gresource").expect("register app resources");
+
+    // SAFETY: called once, at start of main, before any other thread exists.
+    unsafe { setlocale(LocaleCategory::LcAll, "") };
+    bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR).expect("bindtextdomain succeeds");
+    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8").expect("bind_textdomain_codeset succeeds");
+    textdomain(GETTEXT_PACKAGE).expect("textdomain succeeds");
 
     let app = adw::Application::builder().application_id(APP_ID).build();
     app.connect_activate(build_ui);
@@ -52,7 +66,7 @@ fn build_ui(app: &adw::Application) {
 
     let detail_view = repository_detail::build(window.clone());
     let detail_page = adw::NavigationPage::builder()
-        .title("Repository")
+        .title(gettext("Repository"))
         .child(&detail_view.widget)
         .build();
 
@@ -151,7 +165,7 @@ fn present_about_dialog(parent: &adw::ApplicationWindow) {
         .application_icon("drive-harddisk-symbolic")
         .developer_name("Bruno Paz")
         .version(env!("CARGO_PKG_VERSION"))
-        .comments("Browse and restore restic Repositories.")
+        .comments(gettext("Browse and restore restic Repositories."))
         .debug_info(debug_info)
         .build();
 

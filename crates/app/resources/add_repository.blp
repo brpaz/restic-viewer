@@ -2,14 +2,14 @@ using Gtk 4.0;
 using Adw 1;
 
 Adw.Dialog dialog {
-  title: "Add Repository";
+  title: _("Add Repository");
   content-width: 420;
 
   child: Adw.ToolbarView toolbar_view {
     [top]
     Adw.HeaderBar {
       title-widget: Adw.WindowTitle {
-        title: "Add Repository";
+        title: _("Add Repository");
       };
     }
 
@@ -19,21 +19,21 @@ Adw.Dialog dialog {
       Adw.PreferencesPage {
         Adw.PreferencesGroup {
           Adw.EntryRow name_row {
-            title: "Name";
+            title: _("Name");
           }
 
           Adw.ComboRow backend_row {
-            title: "Repository Type";
+            title: _("Repository Type");
             model: Gtk.StringList {
-              strings ["Local", "SFTP", "S3-compatible"]
+              strings [_("Local"), "SFTP", "S3-compatible"]
             };
           }
         }
 
         Adw.PreferencesGroup local_group {
           Adw.ActionRow location_row {
-            title: "Location";
-            subtitle: "No folder selected";
+            title: _("Location");
+            subtitle: _("No folder selected");
             activatable: true;
 
             [suffix]
@@ -45,18 +45,18 @@ Adw.Dialog dialog {
 
         Adw.PreferencesGroup sftp_group {
           visible: false;
-          description: "SFTP uses this machine's existing SSH key or agent — there is no password field here.";
+          description: _("SFTP uses this machine's existing SSH key or agent — there is no password field here.");
 
           Adw.EntryRow host_row {
-            title: "Host";
+            title: _("Host");
           }
 
           Adw.EntryRow sftp_path_row {
-            title: "Remote Path";
+            title: _("Remote Path");
           }
 
           Adw.EntryRow user_row {
-            title: "Username";
+            title: _("Username");
           }
         }
 
@@ -64,25 +64,25 @@ Adw.Dialog dialog {
           visible: false;
 
           Adw.EntryRow endpoint_row {
-            title: "Endpoint";
+            title: _("Endpoint");
           }
 
           Adw.EntryRow bucket_row {
-            title: "Bucket";
+            title: _("Bucket");
           }
 
           Adw.EntryRow access_key_row {
-            title: "Access Key ID";
+            title: _("Access Key ID");
           }
 
           Adw.PasswordEntryRow secret_key_row {
-            title: "Secret Access Key";
+            title: _("Secret Access Key");
           }
         }
 
         Adw.PreferencesGroup {
           Adw.PasswordEntryRow password_row {
-            title: "Repository Password";
+            title: _("Repository Password");
           }
         }
       }
@@ -104,7 +104,7 @@ Adw.Dialog dialog {
       margin-end: 12;
 
       Gtk.Button cancel_button {
-        label: "Cancel";
+        label: _("Cancel");
       }
 
       Gtk.Box {
@@ -112,7 +112,7 @@ Adw.Dialog dialog {
       }
 
       Gtk.Button add_button {
-        label: "Add";
+        label: _("Add");
         styles ["suggested-action"]
         sensitive: false;
       }
