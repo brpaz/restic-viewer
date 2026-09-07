@@ -11,6 +11,9 @@ pre-commit:
     "cargo clippy":
       glob: "*.rs"
       run: cargo clippy --workspace --all-targets -- -D warnings
+    "regenerate flatpak cargo sources":
+      glob: "Cargo.lock"
+      run: task flatpak:sources && git add build-aux/cargo-sources.json
 
 pre-push:
   commands:
