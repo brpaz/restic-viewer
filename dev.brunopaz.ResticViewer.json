@@ -14,7 +14,11 @@
         "--socket=wayland",
         "--socket=fallback-x11",
         "--device=dri",
-        "--talk-name=org.freedesktop.secrets"
+        "--talk-name=org.freedesktop.secrets",
+        "--filesystem=home",
+        "--filesystem=/media",
+        "--filesystem=/run/media",
+        "--filesystem=/mnt"
     ],
     "modules": [
         {
@@ -29,6 +33,7 @@
                 }
             },
             "build-commands": [
+                "patch -p1 < restic-tolerate-einval-lchown.patch",
                 "go build -trimpath -o restic ./cmd/restic",
                 "install -Dm755 restic /app/bin/restic"
             ],
@@ -37,6 +42,10 @@
                     "type": "archive",
                     "url": "https://github.com/restic/restic/releases/download/v0.19.1/restic-0.19.1.tar.gz",
                     "sha256": "bb9b1a19040744d26d8a79be029d4e6b189c45ccc9d8831d7fe367d3c33df725"
+                },
+                {
+                    "type": "file",
+                    "path": "build-aux/restic-tolerate-einval-lchown.patch"
                 },
                 {
                     "type": "archive",

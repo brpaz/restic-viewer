@@ -1,0 +1,33 @@
+Restic only tolerates EPERM when it can't restore ownership/ACL metadata as
+a non-root user (see internal/fs/node.go, NodeRestoreMetadata). Inside an
+unprivileged user namespace — which is how the Flatpak sandbox confines this
+app — the same class of failure (can't set an owner/group/ACL this process
+has no mapping for) surfaces as EINVAL instead of EPERM, for both lchown()
+and xattr syscalls (e.g. setting system.posix_acl_access), see
+user_namespaces(7). Restic treats EINVAL as fatal and aborts the restore
+instead of skipping the metadata it can't restore, like it already does for
+EPERM.
+
+--- a/internal/fs/node.go
++++ b/internal/fs/node.go
+@@ -297,15 +297,17 @@ func NodeRestoreMetadata(node *data.Node, path string, warn func(msg string),
+ func NodeRestoreMetadata(node *data.Node, path string, warn func(msg string), xattrSelectFilter func(xattrName string) bool, ownershipByName bool) error {
+ 	err := nodeRestoreMetadata(node, path, warn, xattrSelectFilter, ownershipByName)
+ 	if err != nil {
+-		// It is common to have permission errors for folders like /home
+-		// unless you're running as root, so ignore those.
+-		if os.Geteuid() > 0 && errors.Is(err, os.ErrPermission) {
++		// It is common to have permission errors for folders like /home
++		// unless you're running as root, so ignore those. Unprivileged user
++		// namespaces (e.g. Flatpak's sandbox) report the same class of error
++		// as EINVAL rather than EPERM, so treat it the same way.
++		if os.Geteuid() > 0 && (errors.Is(err, os.ErrPermission) || errors.Is(err, syscall.EINVAL)) {
+ 			debug.Log("not running as root, ignoring permission error for %v: %v",
+ 				path, err)
+ 			return nil
+ 		}
+ 		debug.Log("restoreMetadata(%s) error %v", path, err)
+ 	}
+ 
+ 	return err
+ }
