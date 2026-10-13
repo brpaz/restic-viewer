@@ -20,7 +20,7 @@ toml = "1"
 gettext-rs = { version = "0.8", features = ["gettext-system"] }
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = "=3.27.0"
 
 [build-dependencies]
 glib-build-tools = "0.22"
