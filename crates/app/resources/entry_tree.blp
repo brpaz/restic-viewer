@@ -25,6 +25,13 @@ Adw.ToolbarView toolbar_view {
     }
 
     [end]
+    Gtk.Button save_button {
+      icon-name: "document-save-symbolic";
+      tooltip-text: _("Save the selected item as a file or archive");
+      sensitive: false;
+    }
+
+    [end]
     Gtk.Button restore_button {
       label: _("Restore Selected");
       sensitive: false;

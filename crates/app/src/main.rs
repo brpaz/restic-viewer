@@ -6,6 +6,7 @@ mod keyring;
 mod preview_dialog;
 mod repository_detail;
 mod restore_dialog;
+mod save_dialog;
 
 use std::cell::RefCell;
 use std::rc::Rc;

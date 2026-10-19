@@ -36,6 +36,23 @@ Adw.Dialog dialog {
             title: _("Restore to Original Location");
             subtitle: _("Overwrites files at their original absolute path");
           }
+
+          Adw.ExpanderRow {
+            title: _("Advanced");
+
+            Adw.EntryRow include_row {
+              title: _("Also include (comma-separated patterns)");
+            }
+
+            Adw.EntryRow exclude_row {
+              title: _("Exclude (comma-separated patterns)");
+            }
+
+            Adw.SwitchRow verify_row {
+              title: _("Verify Restored Files");
+              subtitle: _("Reads the files back and compares them with the Repository");
+            }
+          }
         }
       }
 
