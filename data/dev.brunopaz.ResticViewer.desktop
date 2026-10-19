@@ -5,5 +5,6 @@ Comment=Browse and restore restic backup repositories
 Exec=restic-viewer
 Icon=dev.brunopaz.ResticViewer
 Terminal=false
-Categories=Utility;System;Filesystem;
+Categories=Utility;Archiving;
+Keywords=restic;backup;restore;snapshot;repository;
 StartupNotify=true
