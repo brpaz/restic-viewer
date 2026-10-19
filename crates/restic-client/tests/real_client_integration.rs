@@ -527,3 +527,70 @@ fn a_failed_save_leaves_no_partial_file() {
     assert!(result.is_err());
     assert!(!destination.exists());
 }
+
+#[test]
+fn stats_reports_snapshot_file_and_size_totals() {
+    let fixture = build_fixture();
+
+    let stats = glib::MainContext::new()
+        .block_on(RealResticClient::system().stats(&connection(&fixture)))
+        .expect("stats");
+
+    assert_eq!(stats.snapshot_count, 1);
+    assert!(stats.file_count >= 2);
+    assert_eq!(stats.snapshots_size, 10);
+    assert!(stats.stored_size > 0);
+    assert!(stats.blob_count > 0);
+}
+
+#[test]
+fn check_finds_a_healthy_repository_healthy() {
+    let fixture = build_fixture();
+
+    for read_data in [false, true] {
+        let report = glib::MainContext::new()
+            .block_on(RealResticClient::system().check(
+                &connection(&fixture),
+                read_data,
+                RestoreControl::new(),
+            ))
+            .expect("check");
+
+        assert!(report.healthy, "{}", report.output);
+        assert!(report.output.contains("no errors were found"));
+    }
+}
+
+#[test]
+fn check_reports_a_damaged_repository_instead_of_failing() {
+    let fixture = build_fixture();
+    for pack in walk_files(&fixture.repo_path.join("data")) {
+        // restic writes packs read-only, so replace the file rather than open it.
+        std::fs::remove_file(&pack).unwrap();
+        std::fs::write(&pack, b"garbage").unwrap();
+    }
+
+    let report = glib::MainContext::new()
+        .block_on(RealResticClient::system().check(
+            &connection(&fixture),
+            true,
+            RestoreControl::new(),
+        ))
+        .expect("check returns a report even when the repository is damaged");
+
+    assert!(!report.healthy);
+    assert!(!report.output.is_empty());
+}
+
+fn walk_files(dir: &std::path::Path) -> Vec<PathBuf> {
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(dir).unwrap().flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            files.extend(walk_files(&path));
+        } else {
+            files.push(path);
+        }
+    }
+    files
+}

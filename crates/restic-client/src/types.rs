@@ -93,6 +93,26 @@ pub enum DiffChange {
     Modified,
 }
 
+/// Size and content totals of a Repository, from `restic stats`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct RepositoryStats {
+    pub snapshot_count: u64,
+    pub file_count: u64,
+    /// Combined size of the files in every Snapshot, as they would restore.
+    pub snapshots_size: u64,
+    /// Space the Repository's data takes up in storage after deduplication and compression.
+    pub stored_size: u64,
+    pub blob_count: u64,
+}
+
+/// What `restic check` found. A Repository with problems is a successful check with
+/// `healthy == false`, not an error: `output` then carries restic's findings.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckReport {
+    pub healthy: bool,
+    pub output: String,
+}
+
 /// A file or directory inside a Snapshot's tree.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
