@@ -1,48 +1,28 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":automergeMinor",
-    ":prConcurrentLimit10"
-  ],
-  "labels": [
-    "dependencies"
-  ],
+  "extends": ["config:best-practices", ":automergeMinor", ":prConcurrentLimit10"],
+  "labels": ["dependencies"],
   "minimumReleaseAge": "3 days",
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": [
-      "security"
-    ]
+    "labels": ["security"]
   },
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "description": "The action downloads its binary from the release named by its own ref, so it must be referenced by tag",
-      "matchPackageNames": [
-        "brpaz/draftsman"
-      ],
+      "matchPackageNames": ["brpaz/draftsman"],
       "pinDigests": false
     },
     {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
       "groupName": "github actions"
     },
     {
-      "matchUpdateTypes": [
-        "major"
-      ],
+      "matchUpdateTypes": ["major"],
       "automerge": false,
-      "labels": [
-        "dependencies",
-        "major-update"
-      ]
+      "labels": ["dependencies", "major-update"]
     }
   ]
 }
