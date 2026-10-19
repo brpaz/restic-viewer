@@ -10,6 +10,11 @@
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
+      "description": "The action downloads its binary from the release named by its own ref, so it must be referenced by tag",
+      "matchPackageNames": ["brpaz/draftsman"],
+      "pinDigests": false
+    },
+    {
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "github actions"
