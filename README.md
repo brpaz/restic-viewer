@@ -12,6 +12,8 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 ## Features
 
 - **Browse, don't manage** — attach to an existing Local, SFTP, or S3-compatible Repository; list its Snapshots; walk the file tree inside any of them.
+- **Find things fast** — filter and sort Snapshots by host, tag, path or size; search a Snapshot by file name; sort the tree by name, size or date.
+- **See before you restore** — preview text and images straight from the Repository, and compare any two Snapshots to see what was added, removed or changed.
 - **Restore what you need** — pick individual files or a whole Snapshot, restore to a new directory or back to the original path.
 - **Live progress, real cancel** — restores stream restic's own progress and can be stopped mid-run.
 - **Secrets stay in the keyring** — Repository passwords and Backend credentials live in the system keyring (libsecret), never in a config file.

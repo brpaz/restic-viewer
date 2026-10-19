@@ -1,0 +1,67 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.ToolbarView toolbar_view {
+  [top]
+  Adw.HeaderBar {
+    title-widget: Adw.WindowTitle window_title {};
+  }
+
+  content: Gtk.Stack stack {
+    Gtk.StackPage {
+      name: "loading";
+
+      child: Adw.Spinner {
+        halign: center;
+        valign: center;
+      };
+    }
+
+    Gtk.StackPage {
+      name: "changes";
+
+      child: Gtk.Box {
+        orientation: vertical;
+
+        Gtk.Label summary_label {
+          xalign: 0;
+          margin-top: 8;
+          margin-bottom: 8;
+          margin-start: 12;
+          margin-end: 12;
+
+          styles [
+            "dim-label",
+          ]
+        }
+
+        Gtk.ScrolledWindow {
+          vexpand: true;
+
+          child: Gtk.ListView changes_view {
+            single-click-activate: false;
+          };
+        }
+      };
+    }
+
+    Gtk.StackPage {
+      name: "identical";
+
+      child: Adw.StatusPage {
+        icon-name: "emblem-ok-symbolic";
+        title: _("No Differences");
+        description: _("These Snapshots contain the same files.");
+      };
+    }
+
+    Gtk.StackPage {
+      name: "error";
+
+      child: Adw.StatusPage error_status {
+        icon-name: "dialog-warning-symbolic";
+        title: _("Couldn't Compare Snapshots");
+      };
+    }
+  };
+}

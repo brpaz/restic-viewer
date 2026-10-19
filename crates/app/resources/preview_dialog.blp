@@ -1,0 +1,64 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  content-width: 720;
+  content-height: 520;
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+      title-widget: Adw.WindowTitle window_title {};
+    }
+
+    content: Gtk.Stack stack {
+      Gtk.StackPage {
+        name: "loading";
+
+        child: Adw.Spinner {
+          halign: center;
+          valign: center;
+        };
+      }
+
+      Gtk.StackPage {
+        name: "text";
+
+        child: Gtk.ScrolledWindow {
+          child: Gtk.TextView text_view {
+            editable: false;
+            cursor-visible: false;
+            monospace: true;
+            wrap-mode: word_char;
+            top-margin: 12;
+            bottom-margin: 12;
+            left-margin: 12;
+            right-margin: 12;
+          };
+        };
+      }
+
+      Gtk.StackPage {
+        name: "image";
+
+        child: Gtk.Picture picture {
+          can-shrink: true;
+          content-fit: contain;
+          margin-top: 12;
+          margin-bottom: 12;
+          margin-start: 12;
+          margin-end: 12;
+        };
+      }
+
+      Gtk.StackPage {
+        name: "unavailable";
+
+        child: Adw.StatusPage unavailable_status {
+          icon-name: "text-x-generic-symbolic";
+          title: _("No Preview Available");
+        };
+      }
+    };
+  };
+}

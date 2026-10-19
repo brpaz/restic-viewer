@@ -7,5 +7,7 @@
     <file>restore_dialog.ui</file>
     <file>repository_detail.ui</file>
     <file>entry_tree.ui</file>
+    <file>preview_dialog.ui</file>
+    <file>diff_view.ui</file>
   </gresource>
 </gresources>

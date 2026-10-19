@@ -4,10 +4,85 @@ using Adw 1;
 Adw.ToolbarView toolbar_view {
   [top]
   Adw.HeaderBar {
+    [start]
+    Gtk.DropDown sort_dropdown {
+      tooltip-text: _("Sort by");
+
+      model: Gtk.StringList {
+        strings [
+          _("Name"),
+          _("Size"),
+          _("Date modified"),
+        ]
+      };
+    }
+
+    [title]
+    Gtk.SearchEntry search_entry {
+      placeholder-text: _("Search this Snapshot");
+      hexpand: true;
+      max-width-chars: 40;
+    }
+
     [end]
     Gtk.Button restore_button {
       label: _("Restore Selected");
       sensitive: false;
     }
   }
+
+  content: Gtk.Stack content_stack {
+    Gtk.StackPage {
+      name: "tree";
+
+      child: Gtk.ScrolledWindow {
+        vexpand: true;
+
+        child: Gtk.ListView tree_view {
+          single-click-activate: false;
+          tab-behavior: item;
+        };
+      };
+    }
+
+    Gtk.StackPage {
+      name: "results";
+
+      child: Gtk.ScrolledWindow {
+        vexpand: true;
+
+        child: Gtk.ListView results_view {
+          single-click-activate: false;
+        };
+      };
+    }
+
+    Gtk.StackPage {
+      name: "searching";
+
+      child: Adw.Spinner {
+        halign: center;
+        valign: center;
+      };
+    }
+
+    Gtk.StackPage {
+      name: "no-results";
+
+      child: Adw.StatusPage {
+        icon-name: "system-search-symbolic";
+        title: _("No Matches");
+        description: _("No file or folder in this Snapshot matches your search.");
+      };
+    }
+
+    Gtk.StackPage {
+      name: "search-error";
+
+      child: Adw.StatusPage search_error_status {
+        icon-name: "dialog-warning-symbolic";
+        title: _("Search Failed");
+      };
+    }
+  };
 }
