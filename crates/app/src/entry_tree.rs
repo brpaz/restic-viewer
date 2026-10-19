@@ -8,9 +8,13 @@
 //! Snapshot tree on load. Loading is instead triggered from `TreeListRow`'s `expanded`
 //! notification, guarded by a `loaded` flag on the node so a re-bound row (GTK4 list
 //! items are recycled during scrolling) never re-fetches the same directory twice.
+//!
+//! While a fetch is in flight the directory holds a single placeholder child ("Loading…"
+//! with a spinner), which the fetched children then replace.
 
 use std::cell::{Cell, RefCell};
 
+use gettextrs::gettext;
 use gtk4::prelude::*;
 use libadwaita as adw;
 use restic_client::{Entry, EntryKind, RealResticClient, RepositoryConnection, ResticClient};
@@ -25,6 +29,34 @@ struct NodeData {
     snapshot_id: String,
     child_store: RefCell<Option<gio::ListStore>>,
     loaded: Cell<bool>,
+    placeholder: bool,
+}
+
+impl NodeData {
+    fn new(entry: Entry, connection: RepositoryConnection, snapshot_id: String) -> Self {
+        Self {
+            entry,
+            connection,
+            snapshot_id,
+            child_store: RefCell::new(None),
+            loaded: Cell::new(false),
+            placeholder: false,
+        }
+    }
+
+    fn loading_placeholder(&self) -> Self {
+        let entry = Entry {
+            name: gettext("Loading…"),
+            path: String::new(),
+            kind: EntryKind::File,
+            size: None,
+            mtime: String::new(),
+        };
+        Self {
+            placeholder: true,
+            ..Self::new(entry, self.connection.clone(), self.snapshot_id.clone())
+        }
+    }
 }
 
 pub fn build(
@@ -47,13 +79,11 @@ pub fn build(
             size: None,
             mtime: String::new(),
         };
-        root_store.append(&glib::BoxedAnyObject::new(NodeData {
+        root_store.append(&glib::BoxedAnyObject::new(NodeData::new(
             entry,
-            connection: connection.clone(),
-            snapshot_id: snapshot_id.clone(),
-            child_store: RefCell::new(None),
-            loaded: Cell::new(false),
-        }));
+            connection.clone(),
+            snapshot_id.clone(),
+        )));
     }
 
     let tree_model = gtk4::TreeListModel::new(root_store, false, false, |obj| {
@@ -81,6 +111,7 @@ pub fn build(
         let row_box = gtk4::Box::new(gtk4::Orientation::Horizontal, 8);
         row_box.append(&name_label);
         row_box.append(&meta_label);
+        row_box.append(&adw::Spinner::builder().visible(false).build());
         let expander = gtk4::TreeExpander::new();
         expander.set_child(Some(&row_box));
         list_item.set_child(Some(&expander));
@@ -121,10 +152,19 @@ pub fn build(
                 && let Some(meta_label) = name_label
                     .next_sibling()
                     .and_then(|c| c.downcast::<gtk4::Label>().ok())
+                && let Some(spinner) = meta_label.next_sibling()
             {
                 name_label.set_label(&node.entry.name);
                 meta_label.set_label(&format_meta(&node.entry));
+                spinner.set_visible(node.placeholder);
+                if node.placeholder {
+                    name_label.add_css_class("dim-label");
+                } else {
+                    name_label.remove_css_class("dim-label");
+                }
             }
+            list_item.set_selectable(!node.placeholder);
+            list_item.set_activatable(!node.placeholder);
         }
 
         maybe_load_children(&boxed, &row);
@@ -185,7 +225,10 @@ fn selected_entry_paths(model: &gtk4::MultiSelection) -> Vec<String> {
                 .item()
                 .and_then(|item| item.downcast::<glib::BoxedAnyObject>().ok())
         {
-            paths.push(boxed.borrow::<NodeData>().entry.path.clone());
+            let node = boxed.borrow::<NodeData>();
+            if !node.placeholder {
+                paths.push(node.entry.path.clone());
+            }
         }
     }
     paths
@@ -201,6 +244,9 @@ fn maybe_load_children(boxed: &glib::BoxedAnyObject, row: &gtk4::TreeListRow) {
             return;
         }
         node.loaded.set(true);
+        if let Some(store) = node.child_store.borrow().as_ref() {
+            store.append(&glib::BoxedAnyObject::new(node.loading_placeholder()));
+        }
     }
 
     let boxed = boxed.clone();
@@ -216,22 +262,23 @@ fn maybe_load_children(boxed: &glib::BoxedAnyObject, row: &gtk4::TreeListRow) {
         };
         let Some(store) = store else { return };
 
-        if let Ok(children) = RealResticClient::system()
+        let children = RealResticClient::system()
             .list_tree(&connection, &snapshot_id, &path)
             .await
-        {
-            for child in children {
-                store.append(&glib::BoxedAnyObject::new(NodeData {
-                    entry: child,
-                    connection: connection.clone(),
-                    snapshot_id: snapshot_id.clone(),
-                    child_store: RefCell::new(None),
-                    loaded: Cell::new(false),
-                }));
-            }
-        }
+            .unwrap_or_default();
         // A failed fetch just leaves this directory empty rather than surfacing an
         // error inline — acceptable for v1; revisit if this proves confusing.
+        let children: Vec<_> = children
+            .into_iter()
+            .map(|child| {
+                glib::BoxedAnyObject::new(NodeData::new(
+                    child,
+                    connection.clone(),
+                    snapshot_id.clone(),
+                ))
+            })
+            .collect();
+        store.splice(0, store.n_items(), &children);
     });
 }
 
