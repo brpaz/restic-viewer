@@ -66,6 +66,31 @@ pub struct Snapshot {
     #[serde(default)]
     pub tags: Vec<String>,
     pub paths: Vec<String>,
+    /// Totals recorded by restic 0.17+ when the Snapshot was created; absent on older ones.
+    #[serde(default)]
+    pub summary: Option<SnapshotSummary>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+pub struct SnapshotSummary {
+    #[serde(default)]
+    pub total_files_processed: u64,
+    #[serde(default)]
+    pub total_bytes_processed: u64,
+}
+
+/// One path that differs between two Snapshots.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DiffEntry {
+    pub path: String,
+    pub change: DiffChange,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DiffChange {
+    Added,
+    Removed,
+    Modified,
 }
 
 /// A file or directory inside a Snapshot's tree.

@@ -290,3 +290,84 @@ fn whoami_hostname() -> String {
         .map(|s| s.trim().to_string())
         .unwrap_or_default()
 }
+
+fn restic(fixture: &Fixture, args: &[&str]) {
+    let status = Command::new("restic")
+        .args(args)
+        .env("RESTIC_PASSWORD", "test-password")
+        .env("RESTIC_REPOSITORY", &fixture.repo_path)
+        .status()
+        .expect("restic must be installed to run this integration test");
+    assert!(status.success(), "restic {args:?} failed");
+}
+
+fn first_snapshot_id(fixture: &Fixture) -> String {
+    glib::MainContext::new()
+        .block_on(RealResticClient::system().list_snapshots(&connection(fixture)))
+        .expect("list_snapshots")[0]
+        .id
+        .clone()
+}
+
+#[test]
+fn search_finds_entries_at_any_depth_ignoring_case() {
+    let fixture = build_fixture();
+    let snapshot_id = first_snapshot_id(&fixture);
+
+    let entries = glib::MainContext::new()
+        .block_on(RealResticClient::system().search(&connection(&fixture), &snapshot_id, "FILE2"))
+        .expect("search");
+
+    let names: Vec<&str> = entries.iter().map(|e| e.name.as_str()).collect();
+    assert_eq!(names, vec!["file2.txt"]);
+}
+
+#[test]
+fn read_file_returns_the_file_contents() {
+    let fixture = build_fixture();
+    let snapshot_id = first_snapshot_id(&fixture);
+    let path = fixture.source_path.join("file1.txt");
+
+    let bytes = glib::MainContext::new()
+        .block_on(RealResticClient::system().read_file(
+            &connection(&fixture),
+            &snapshot_id,
+            path.to_str().unwrap(),
+        ))
+        .expect("read_file");
+
+    assert_eq!(bytes, b"hello");
+}
+
+#[test]
+fn diff_reports_added_removed_and_modified_paths() {
+    let fixture = build_fixture();
+    let first = first_snapshot_id(&fixture);
+    std::fs::write(fixture.source_path.join("file1.txt"), b"changed").unwrap();
+    std::fs::remove_file(fixture.source_path.join("subdir/file2.txt")).unwrap();
+    std::fs::write(fixture.source_path.join("new.txt"), b"new").unwrap();
+    restic(&fixture, &["backup", fixture.source_path.to_str().unwrap()]);
+
+    let snapshots = glib::MainContext::new()
+        .block_on(RealResticClient::system().list_snapshots(&connection(&fixture)))
+        .expect("list_snapshots");
+    let second = snapshots.iter().find(|s| s.id != first).unwrap().id.clone();
+
+    let changes = glib::MainContext::new()
+        .block_on(RealResticClient::system().diff(&connection(&fixture), &first, &second))
+        .expect("diff");
+
+    let change_for = |name: &str| {
+        changes
+            .iter()
+            .find(|c| c.path.ends_with(name))
+            .unwrap_or_else(|| panic!("no change for {name}"))
+            .change
+    };
+    assert_eq!(change_for("/new.txt"), restic_client::DiffChange::Added);
+    assert_eq!(change_for("/file2.txt"), restic_client::DiffChange::Removed);
+    assert_eq!(
+        change_for("/file1.txt"),
+        restic_client::DiffChange::Modified
+    );
+}
