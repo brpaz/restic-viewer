@@ -9,7 +9,7 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 Download the `.flatpak` bundle from the [latest release](https://github.com/brpaz/restic-viewer/releases/latest):
 
 ```bash
-flatpak install --user restic-viewer.flatpak
+flatpak install --user ./dev.brunopaz.ResticViewer-*-x86_64.flatpak
 flatpak run dev.brunopaz.ResticViewer
 ```
 

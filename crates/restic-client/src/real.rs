@@ -7,8 +7,8 @@ use gio::prelude::*;
 
 use crate::ResticClient;
 use crate::types::{
-    Entry, EntryKind, RepositoryConnection, ResticError, RestoreControl, RestoreOutcome,
-    RestoreProgress, RestoreRequest, Snapshot,
+    DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError, RestoreControl,
+    RestoreOutcome, RestoreProgress, RestoreRequest, Snapshot,
 };
 
 /// Shells out to a restic binary and parses its `--json` output.
@@ -30,19 +30,39 @@ impl RealResticClient {
         Self::new("restic")
     }
 
+    fn launcher(&self, repo: &RepositoryConnection) -> gio::SubprocessLauncher {
+        let launcher = gio::SubprocessLauncher::new(
+            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_PIPE,
+        );
+        for (key, value) in repo.environment() {
+            launcher.setenv(&key, &value, true);
+        }
+        launcher.setenv("RESTIC_REPOSITORY", repo.repository_argument(), true);
+        launcher
+    }
+
+    /// Runs `restic ls` (optionally limited to one directory) and parses the nodes.
+    async fn ls(
+        &self,
+        repo: &RepositoryConnection,
+        snapshot_id: &str,
+        path: Option<&str>,
+    ) -> Result<Vec<Entry>, ResticError> {
+        let mut args = vec![
+            "ls".to_string(),
+            snapshot_id.to_string(),
+            "--json".to_string(),
+        ];
+        args.extend(path.map(str::to_string));
+        parse_nodes(&self.run(repo, &args).await?)
+    }
+
     async fn run(
         &self,
         repo: &RepositoryConnection,
         args: &[String],
     ) -> Result<String, ResticError> {
-        let launcher = gio::SubprocessLauncher::new(
-            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_PIPE,
-        );
-
-        for (key, value) in repo.environment() {
-            launcher.setenv(&key, &value, true);
-        }
-        launcher.setenv("RESTIC_REPOSITORY", repo.repository_argument(), true);
+        let launcher = self.launcher(repo);
 
         let mut argv: Vec<std::ffi::OsString> = vec![self.binary.as_os_str().to_owned()];
         argv.extend(args.iter().map(std::ffi::OsString::from));
@@ -72,6 +92,59 @@ struct NodeLine {
     path: String,
     size: Option<u64>,
     mtime: String,
+}
+
+#[derive(Deserialize)]
+struct ChangeLine {
+    path: String,
+    modifier: String,
+}
+
+fn parse_nodes(stdout: &str) -> Result<Vec<Entry>, ResticError> {
+    let mut entries = Vec::new();
+    for line in stdout.lines() {
+        let value: Value = serde_json::from_str(line)?;
+        if value.get("message_type").and_then(Value::as_str) != Some("node") {
+            continue;
+        }
+        let node: NodeLine = serde_json::from_value(value)?;
+        entries.push(Entry {
+            name: node.name,
+            path: node.path,
+            kind: match node.kind.as_str() {
+                "dir" => EntryKind::Directory,
+                "symlink" => EntryKind::Symlink,
+                _ => EntryKind::File,
+            },
+            size: node.size,
+            mtime: node.mtime,
+        });
+    }
+    Ok(entries)
+}
+
+/// Parses `restic diff --json` output: one `change` line per differing path, followed by
+/// a statistics line that is ignored. Metadata-only (`M`/`U`/`T`) changes count as
+/// modifications.
+fn parse_diff(stdout: &str) -> Result<Vec<DiffEntry>, ResticError> {
+    let mut changes = Vec::new();
+    for line in stdout.lines() {
+        let value: Value = serde_json::from_str(line)?;
+        if value.get("message_type").and_then(Value::as_str) != Some("change") {
+            continue;
+        }
+        let change: ChangeLine = serde_json::from_value(value)?;
+        let kind = match change.modifier.as_str() {
+            "+" => DiffChange::Added,
+            "-" => DiffChange::Removed,
+            _ => DiffChange::Modified,
+        };
+        changes.push(DiffEntry {
+            path: change.path,
+            change: kind,
+        });
+    }
+    Ok(changes)
 }
 
 #[derive(Deserialize)]
@@ -105,47 +178,80 @@ impl ResticClient for RealResticClient {
         Ok(serde_json::from_str(&stdout)?)
     }
 
+    /// Asks restic for just this directory (not the whole Snapshot), so the cost scales
+    /// with the directory's size. restic lists the directory itself first; only its
+    /// direct children are kept.
     async fn list_tree(
         &self,
         repo: &RepositoryConnection,
         snapshot_id: &str,
         path: &str,
     ) -> Result<Vec<Entry>, ResticError> {
+        let wanted_parent = Path::new(path);
+        Ok(self
+            .ls(repo, snapshot_id, Some(path))
+            .await?
+            .into_iter()
+            .filter(|entry| Path::new(&entry.path).parent() == Some(wanted_parent))
+            .collect())
+    }
+
+    async fn list_all(
+        &self,
+        repo: &RepositoryConnection,
+        snapshot_id: &str,
+    ) -> Result<Vec<Entry>, ResticError> {
+        self.ls(repo, snapshot_id, None).await
+    }
+
+    async fn diff(
+        &self,
+        repo: &RepositoryConnection,
+        from_snapshot_id: &str,
+        to_snapshot_id: &str,
+    ) -> Result<Vec<DiffEntry>, ResticError> {
         let stdout = self
             .run(
                 repo,
                 &[
-                    "ls".to_string(),
-                    snapshot_id.to_string(),
+                    "diff".to_string(),
                     "--json".to_string(),
+                    from_snapshot_id.to_string(),
+                    to_snapshot_id.to_string(),
                 ],
             )
             .await?;
+        parse_diff(&stdout)
+    }
 
-        let wanted_parent = Path::new(path);
-        let mut entries = Vec::new();
-        for line in stdout.lines() {
-            let value: Value = serde_json::from_str(line)?;
-            if value.get("message_type").and_then(Value::as_str) != Some("node") {
-                continue;
-            }
-            let node: NodeLine = serde_json::from_value(value)?;
-            if Path::new(&node.path).parent() != Some(wanted_parent) {
-                continue;
-            }
-            entries.push(Entry {
-                name: node.name,
-                path: node.path,
-                kind: match node.kind.as_str() {
-                    "dir" => EntryKind::Directory,
-                    "symlink" => EntryKind::Symlink,
-                    _ => EntryKind::File,
-                },
-                size: node.size,
-                mtime: node.mtime,
+    async fn read_file(
+        &self,
+        repo: &RepositoryConnection,
+        snapshot_id: &str,
+        path: &str,
+    ) -> Result<Vec<u8>, ResticError> {
+        let launcher = self.launcher(repo);
+        let argv: Vec<std::ffi::OsString> = vec![
+            self.binary.as_os_str().to_owned(),
+            "dump".into(),
+            snapshot_id.into(),
+            path.into(),
+        ];
+        let argv_refs: Vec<&std::ffi::OsStr> =
+            argv.iter().map(std::ffi::OsString::as_os_str).collect();
+
+        let process = launcher.spawn(&argv_refs)?;
+        let (stdout, stderr) = process.communicate_future(None).await?;
+
+        if process.exit_status() != 0 {
+            return Err(ResticError::NonZeroExit {
+                code: Some(process.exit_status()),
+                stderr: stderr
+                    .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+                    .unwrap_or_default(),
             });
         }
-        Ok(entries)
+        Ok(stdout.map(|bytes| bytes.to_vec()).unwrap_or_default())
     }
 
     async fn restore(
@@ -267,5 +373,44 @@ impl ResticClient for RealResticClient {
         }
 
         Ok(outcome)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_added_removed_and_modified_changes() {
+        let output = concat!(
+            r#"{"message_type":"change","path":"/a/new.txt","modifier":"+"}"#,
+            "\n",
+            r#"{"message_type":"change","path":"/a/old.txt","modifier":"-"}"#,
+            "\n",
+            r#"{"message_type":"change","path":"/a/edit.txt","modifier":"M"}"#,
+            "\n",
+            r#"{"message_type":"statistics","source_snapshot":"x"}"#,
+            "\n",
+        );
+
+        let changes = parse_diff(output).unwrap();
+
+        assert_eq!(
+            changes,
+            vec![
+                DiffEntry {
+                    path: "/a/new.txt".into(),
+                    change: DiffChange::Added
+                },
+                DiffEntry {
+                    path: "/a/old.txt".into(),
+                    change: DiffChange::Removed
+                },
+                DiffEntry {
+                    path: "/a/edit.txt".into(),
+                    change: DiffChange::Modified
+                },
+            ]
+        );
     }
 }

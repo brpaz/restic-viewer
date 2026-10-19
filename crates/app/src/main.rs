@@ -1,7 +1,9 @@
 mod add_repository;
 mod config;
+mod diff_view;
 mod entry_tree;
 mod keyring;
+mod preview_dialog;
 mod repository_detail;
 mod restore_dialog;
 
@@ -22,7 +24,7 @@ const RESOURCE_PREFIX: &str = "/dev/brunopaz/ResticViewer";
 
 /// Matches the .mo filename installed under `<LOCALEDIR>/<lang>/LC_MESSAGES/` —
 /// see ADR-0006. Defaults to the Flatpak's fixed `/app` prefix; native .deb/.rpm
-/// packages build with `LOCALEDIR=/usr/share/locale` set instead (see nfpm.yaml).
+/// builds through Meson get it from the install prefix (`LOCALEDIR`, see meson.build).
 const GETTEXT_PACKAGE: &str = "restic-viewer";
 const LOCALEDIR: &str = match option_env!("LOCALEDIR") {
     Some(dir) => dir,

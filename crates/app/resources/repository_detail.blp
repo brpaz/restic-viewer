@@ -6,12 +6,55 @@ Adw.NavigationPage snapshot_list_page {
 
   child: Adw.ToolbarView {
     [top]
-    Adw.HeaderBar {}
+    Adw.HeaderBar {
+      [start]
+      Gtk.ToggleButton compare_button {
+        icon-name: "view-dual-symbolic";
+        tooltip-text: _("Compare two Snapshots");
+      }
+
+      [title]
+      Gtk.SearchEntry snapshot_search {
+        placeholder-text: _("Filter by host, tag or path");
+        hexpand: true;
+        max-width-chars: 40;
+      }
+
+      [end]
+      Gtk.DropDown snapshot_sort_dropdown {
+        tooltip-text: _("Sort by");
+
+        model: Gtk.StringList {
+          strings [
+            _("Newest first"),
+            _("Oldest first"),
+            _("Largest first"),
+          ]
+        };
+      }
+    }
+
+    [bottom]
+    Gtk.Revealer compare_hint {
+      child: Gtk.Label {
+        label: _("Select two Snapshots to compare them");
+        margin-top: 8;
+        margin-bottom: 8;
+
+        styles [
+          "dim-label",
+        ]
+      };
+    }
 
     content: Gtk.ScrolledWindow {
       child: Gtk.ListBox snapshot_list {
         selection-mode: none;
-        styles ["boxed-list"]
+
+        styles [
+          "boxed-list",
+        ]
+
         margin-top: 12;
         margin-bottom: 12;
         margin-start: 12;
@@ -106,7 +149,11 @@ Gtk.Stack stack {
 
         Gtk.Button unlock_button {
           label: _("Unlock");
-          styles ["suggested-action"]
+
+          styles [
+            "suggested-action",
+          ]
+
           halign: end;
         }
       };

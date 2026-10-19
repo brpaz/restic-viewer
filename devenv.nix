@@ -11,6 +11,12 @@
   packages = [
     pkgs.pkg-config
 
+    # Top-level build, test and install driver — see meson.build.
+    pkgs.meson
+    pkgs.ninja
+    pkgs.desktop-file-utils
+    pkgs.appstream
+
     # libadwaita >= 1.6 is required (Adw.Spinner) — this input's nixpkgs revision
     # is pinned in devenv.lock, so check `libadwaita --version` after a
     # `devenv update` if the app's minimum version ever moves.
@@ -35,6 +41,10 @@
     # Git hooks (lefthook.yml, .commitlintrc.yml).
     pkgs.lefthook
     pkgs.commitlint-rs
+
+    # Supply-chain checks — see deny.toml and .gitleaks.toml.
+    pkgs.cargo-deny
+    pkgs.gitleaks
 
     # Packages .deb/.rpm via nfpm.yaml (task package:deb / package:rpm).
     pkgs.nfpm

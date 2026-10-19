@@ -50,7 +50,10 @@ Adw.Dialog dialog {
       }
 
       Gtk.Label error_label {
-        css-classes: ["error"];
+        css-classes: [
+          "error",
+        ];
+
         wrap: true;
         visible: false;
       }
@@ -75,7 +78,11 @@ Adw.Dialog dialog {
 
       Gtk.Button start_button {
         label: _("Restore");
-        styles ["suggested-action"]
+
+        styles [
+          "suggested-action",
+        ]
+
         sensitive: false;
       }
     }

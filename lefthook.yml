@@ -11,6 +11,12 @@ pre-commit:
     "cargo clippy":
       glob: "*.rs"
       run: cargo clippy --workspace --all-targets -- -D warnings
+    "blueprint format":
+      glob: "*.blp"
+      run: blueprint-compiler format --fix {staged_files}
+      stage_fixed: true
+    "gitleaks":
+      run: gitleaks git --staged --redact --no-banner
     "regenerate flatpak cargo sources":
       glob: "Cargo.lock"
       run: task flatpak:sources && git add build-aux/cargo-sources.json

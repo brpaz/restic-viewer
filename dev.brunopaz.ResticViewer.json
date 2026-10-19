@@ -57,22 +57,17 @@
         },
         {
             "name": "restic-viewer",
-            "buildsystem": "simple",
+            "buildsystem": "meson",
+            "config-opts": ["-Dbuildtype=release"],
             "build-options": {
                 "append-path": "/usr/lib/sdk/rust-stable/bin",
                 "env": {
                     "CARGO_HOME": "/run/build/restic-viewer/cargo",
+                    "CARGO_NET_OFFLINE": "true",
                     "CARGO_INCREMENTAL": "0",
                     "RUSTFLAGS": "--remap-path-prefix=/run/build/restic-viewer/crates/app=/build --remap-path-prefix=/run/build/restic-viewer/cargo=/cargo"
                 }
             },
-            "build-commands": [
-                "cargo --offline build --release -p restic-viewer",
-                "install -Dm755 target/release/restic-viewer /app/bin/restic-viewer",
-                "install -Dm644 data/dev.brunopaz.ResticViewer.desktop /app/share/applications/dev.brunopaz.ResticViewer.desktop",
-                "install -Dm644 data/dev.brunopaz.ResticViewer.metainfo.xml /app/share/metainfo/dev.brunopaz.ResticViewer.metainfo.xml",
-                "install -Dm644 data/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg /app/share/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg"
-            ],
             "sources": [
                 {
                     "type": "dir",

@@ -9,8 +9,8 @@ mod types;
 
 pub use real::RealResticClient;
 pub use types::{
-    Backend, Entry, EntryKind, RepositoryConnection, ResticError, RestoreControl, RestoreOutcome,
-    RestoreProgress, RestoreRequest, Snapshot,
+    Backend, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError,
+    RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, Snapshot, SnapshotSummary,
 };
 
 use std::future::Future;
@@ -34,6 +34,31 @@ pub trait ResticClient {
         path: &str,
     ) -> impl Future<Output = Result<Vec<Entry>, ResticError>>;
 
+    /// Every Entry of a Snapshot. Walks the whole tree, so callers that search repeatedly
+    /// should keep the result rather than ask again.
+    fn list_all(
+        &self,
+        repo: &RepositoryConnection,
+        snapshot_id: &str,
+    ) -> impl Future<Output = Result<Vec<Entry>, ResticError>>;
+
+    /// Lists the paths that differ between two Snapshots, `from` being the older one.
+    fn diff(
+        &self,
+        repo: &RepositoryConnection,
+        from_snapshot_id: &str,
+        to_snapshot_id: &str,
+    ) -> impl Future<Output = Result<Vec<DiffEntry>, ResticError>>;
+
+    /// Reads the contents of one file in a Snapshot into memory. Callers are expected to
+    /// bound the file size (see [`Entry::size`]) before asking.
+    fn read_file(
+        &self,
+        repo: &RepositoryConnection,
+        snapshot_id: &str,
+        path: &str,
+    ) -> impl Future<Output = Result<Vec<u8>, ResticError>>;
+
     /// Runs a Restore, reporting progress via `on_progress` as restic emits status
     /// updates. `control` can be used by the caller (from outside this future, e.g. a
     /// Cancel button) to stop the Restore early — see [`RestoreControl`].
@@ -54,6 +79,9 @@ pub trait ResticClient {
 pub struct FakeResticClient {
     pub snapshots_response: std::sync::Mutex<Option<Result<Vec<Snapshot>, ResticError>>>,
     pub tree_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
+    pub listing_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
+    pub diff_response: std::sync::Mutex<Option<Result<Vec<DiffEntry>, ResticError>>>,
+    pub file_response: std::sync::Mutex<Option<Result<Vec<u8>, ResticError>>>,
     pub restore_response: std::sync::Mutex<Option<Result<RestoreOutcome, ResticError>>>,
 }
 
@@ -78,6 +106,44 @@ impl ResticClient for FakeResticClient {
             .unwrap()
             .take()
             .expect("FakeResticClient.tree_response was not set before list_tree was called")
+    }
+
+    async fn list_all(
+        &self,
+        _repo: &RepositoryConnection,
+        _snapshot_id: &str,
+    ) -> Result<Vec<Entry>, ResticError> {
+        self.listing_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.listing_response was not set before list_all was called")
+    }
+
+    async fn diff(
+        &self,
+        _repo: &RepositoryConnection,
+        _from_snapshot_id: &str,
+        _to_snapshot_id: &str,
+    ) -> Result<Vec<DiffEntry>, ResticError> {
+        self.diff_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.diff_response was not set before diff was called")
+    }
+
+    async fn read_file(
+        &self,
+        _repo: &RepositoryConnection,
+        _snapshot_id: &str,
+        _path: &str,
+    ) -> Result<Vec<u8>, ResticError> {
+        self.file_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.file_response was not set before read_file was called")
     }
 
     async fn restore(
@@ -118,6 +184,7 @@ mod tests {
             hostname: "host".to_string(),
             tags: vec![],
             paths: vec!["/home".to_string()],
+            summary: None,
         }]));
 
         let result = glib::MainContext::new().block_on(fake.list_snapshots(&connection()));

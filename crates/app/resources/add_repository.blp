@@ -24,8 +24,13 @@ Adw.Dialog dialog {
 
           Adw.ComboRow backend_row {
             title: _("Repository Type");
+
             model: Gtk.StringList {
-              strings [_("Local"), "SFTP", "S3-compatible"]
+              strings [
+                _("Local"),
+                "SFTP",
+                "S3-compatible",
+              ]
             };
           }
         }
@@ -88,7 +93,10 @@ Adw.Dialog dialog {
       }
 
       Gtk.Label error_label {
-        css-classes: ["error"];
+        css-classes: [
+          "error",
+        ];
+
         wrap: true;
         visible: false;
       }
@@ -113,7 +121,11 @@ Adw.Dialog dialog {
 
       Gtk.Button add_button {
         label: _("Add");
-        styles ["suggested-action"]
+
+        styles [
+          "suggested-action",
+        ]
+
         sensitive: false;
       }
     }
