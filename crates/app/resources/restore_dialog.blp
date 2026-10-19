@@ -19,39 +19,37 @@ Adw.Dialog dialog {
       margin-start: 12;
       margin-end: 12;
 
-      Adw.PreferencesPage {
-        Adw.PreferencesGroup group {
-          Adw.ActionRow target_row {
-            title: _("Target Directory");
-            subtitle: _("No folder selected");
-            activatable: true;
+      Adw.PreferencesGroup group {
+        Adw.ActionRow target_row {
+          title: _("Target Directory");
+          subtitle: _("No folder selected");
+          activatable: true;
 
-            [suffix]
-            Gtk.Image {
-              icon-name: "folder-symbolic";
-            }
+          [suffix]
+          Gtk.Image {
+            icon-name: "folder-symbolic";
+          }
+        }
+
+        Adw.SwitchRow original_location_row {
+          title: _("Restore to Original Location");
+          subtitle: _("Overwrites files at their original absolute path");
+        }
+
+        Adw.ExpanderRow {
+          title: _("Advanced");
+
+          Adw.EntryRow include_row {
+            title: _("Also include (comma-separated patterns)");
           }
 
-          Adw.SwitchRow original_location_row {
-            title: _("Restore to Original Location");
-            subtitle: _("Overwrites files at their original absolute path");
+          Adw.EntryRow exclude_row {
+            title: _("Exclude (comma-separated patterns)");
           }
 
-          Adw.ExpanderRow {
-            title: _("Advanced");
-
-            Adw.EntryRow include_row {
-              title: _("Also include (comma-separated patterns)");
-            }
-
-            Adw.EntryRow exclude_row {
-              title: _("Exclude (comma-separated patterns)");
-            }
-
-            Adw.SwitchRow verify_row {
-              title: _("Verify Restored Files");
-              subtitle: _("Reads the files back and compares them with the Repository");
-            }
+          Adw.SwitchRow verify_row {
+            title: _("Verify Restored Files");
+            subtitle: _("Reads the files back and compares them with the Repository");
           }
         }
       }
