@@ -36,6 +36,7 @@ Restic Viewer attaches to Repositories you already back up elsewhere (via `resti
 - **See before you restore** — preview text and images straight from the Repository, and compare any two Snapshots to see what was added, removed or changed.
 - **Restore what you need** — pick individual files or a whole Snapshot, restore to a new directory or back to the original path.
 - **Save without restoring** — write one file, or a folder as a tar/zip archive, straight to a file of your choice; restore with include/exclude patterns and optional verification.
+- **Check before you trust** — see how many Snapshots and how much data a Repository holds, and run restic's read-only integrity check from the app.
 - **Live progress, real cancel** — restores stream restic's own progress and can be stopped mid-run.
 - **Secrets stay in the keyring** — Repository passwords and Backend credentials live in the system keyring (libsecret), never in a config file.
 - **Bundled restic (Flatpak only)** — the Flatpak bundles its own restic build, so it works the moment it's installed; the `.deb`/`.rpm` packages depend on your distro's `restic` package instead.

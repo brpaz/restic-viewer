@@ -13,6 +13,11 @@ Adw.NavigationPage snapshot_list_page {
         tooltip-text: _("Compare two Snapshots");
       }
 
+      Gtk.Button health_button {
+        icon-name: "utilities-system-monitor-symbolic";
+        tooltip-text: _("Repository health");
+      }
+
       [title]
       Gtk.SearchEntry snapshot_search {
         placeholder-text: _("Filter by host, tag or path");

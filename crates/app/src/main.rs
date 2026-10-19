@@ -2,6 +2,7 @@ mod add_repository;
 mod config;
 mod diff_view;
 mod entry_tree;
+mod health_dialog;
 mod keyring;
 mod preview_dialog;
 mod repository_detail;

@@ -16,7 +16,7 @@ use gettextrs::{gettext, ngettext};
 use crate::config::RepositoryEntry;
 use crate::keyring::{self, CredentialKind};
 use crate::restore_dialog;
-use crate::{diff_view, entry_tree};
+use crate::{diff_view, entry_tree, health_dialog};
 
 const RESTIC_EXIT_WRONG_PASSWORD: i32 = 12;
 const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/repository_detail.ui";
@@ -64,6 +64,7 @@ pub fn build(parent: adw::ApplicationWindow) -> DetailView {
     let snapshot_sort_dropdown: gtk4::DropDown = builder
         .object("snapshot_sort_dropdown")
         .expect("snapshot_sort_dropdown");
+    let health_button: gtk4::Button = builder.object("health_button").expect("health_button");
     let compare_hint: gtk4::Revealer = builder.object("compare_hint").expect("compare_hint");
 
     nav_view.push(&snapshot_list_page);
@@ -92,6 +93,14 @@ pub fn build(parent: adw::ApplicationWindow) -> DetailView {
         move |dropdown| {
             view.sort.set(SnapshotSort::from_index(dropdown.selected()));
             view.render();
+        }
+    });
+    health_button.connect_clicked({
+        let view = view.clone();
+        move |_| {
+            if let Some(connection) = view.connection.borrow().clone() {
+                health_dialog::present(&view.parent, connection);
+            }
         }
     });
     compare_button.connect_toggled({
