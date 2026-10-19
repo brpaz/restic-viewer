@@ -27,7 +27,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          dnf install -y gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler restic hostname meson ninja-build desktop-file-utils appstream
+          dnf install -y git gcc gcc-c++ make pkgconf-pkg-config gtk4-devel libadwaita-devel libsecret-devel blueprint-compiler restic hostname meson ninja-build desktop-file-utils appstream
 
       # Toolchain version/components come from rust-toolchain.toml, not a hardcoded
       # channel here — rustup reads it automatically on the first cargo/rustc
