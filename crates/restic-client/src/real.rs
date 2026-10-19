@@ -41,43 +41,20 @@ impl RealResticClient {
         launcher
     }
 
-    /// Every Entry of a Snapshot, in restic's listing order.
-    async fn list_all(
+    /// Runs `restic ls` (optionally limited to one directory) and parses the nodes.
+    async fn ls(
         &self,
         repo: &RepositoryConnection,
         snapshot_id: &str,
+        path: Option<&str>,
     ) -> Result<Vec<Entry>, ResticError> {
-        let stdout = self
-            .run(
-                repo,
-                &[
-                    "ls".to_string(),
-                    snapshot_id.to_string(),
-                    "--json".to_string(),
-                ],
-            )
-            .await?;
-
-        let mut entries = Vec::new();
-        for line in stdout.lines() {
-            let value: Value = serde_json::from_str(line)?;
-            if value.get("message_type").and_then(Value::as_str) != Some("node") {
-                continue;
-            }
-            let node: NodeLine = serde_json::from_value(value)?;
-            entries.push(Entry {
-                name: node.name,
-                path: node.path,
-                kind: match node.kind.as_str() {
-                    "dir" => EntryKind::Directory,
-                    "symlink" => EntryKind::Symlink,
-                    _ => EntryKind::File,
-                },
-                size: node.size,
-                mtime: node.mtime,
-            });
-        }
-        Ok(entries)
+        let mut args = vec![
+            "ls".to_string(),
+            snapshot_id.to_string(),
+            "--json".to_string(),
+        ];
+        args.extend(path.map(str::to_string));
+        parse_nodes(&self.run(repo, &args).await?)
     }
 
     async fn run(
@@ -121,6 +98,29 @@ struct NodeLine {
 struct ChangeLine {
     path: String,
     modifier: String,
+}
+
+fn parse_nodes(stdout: &str) -> Result<Vec<Entry>, ResticError> {
+    let mut entries = Vec::new();
+    for line in stdout.lines() {
+        let value: Value = serde_json::from_str(line)?;
+        if value.get("message_type").and_then(Value::as_str) != Some("node") {
+            continue;
+        }
+        let node: NodeLine = serde_json::from_value(value)?;
+        entries.push(Entry {
+            name: node.name,
+            path: node.path,
+            kind: match node.kind.as_str() {
+                "dir" => EntryKind::Directory,
+                "symlink" => EntryKind::Symlink,
+                _ => EntryKind::File,
+            },
+            size: node.size,
+            mtime: node.mtime,
+        });
+    }
+    Ok(entries)
 }
 
 /// Parses `restic diff --json` output: one `change` line per differing path, followed by
@@ -178,6 +178,9 @@ impl ResticClient for RealResticClient {
         Ok(serde_json::from_str(&stdout)?)
     }
 
+    /// Asks restic for just this directory (not the whole Snapshot), so the cost scales
+    /// with the directory's size. restic lists the directory itself first; only its
+    /// direct children are kept.
     async fn list_tree(
         &self,
         repo: &RepositoryConnection,
@@ -186,26 +189,19 @@ impl ResticClient for RealResticClient {
     ) -> Result<Vec<Entry>, ResticError> {
         let wanted_parent = Path::new(path);
         Ok(self
-            .list_all(repo, snapshot_id)
+            .ls(repo, snapshot_id, Some(path))
             .await?
             .into_iter()
             .filter(|entry| Path::new(&entry.path).parent() == Some(wanted_parent))
             .collect())
     }
 
-    async fn search(
+    async fn list_all(
         &self,
         repo: &RepositoryConnection,
         snapshot_id: &str,
-        query: &str,
     ) -> Result<Vec<Entry>, ResticError> {
-        let needle = query.to_lowercase();
-        Ok(self
-            .list_all(repo, snapshot_id)
-            .await?
-            .into_iter()
-            .filter(|entry| entry.name.to_lowercase().contains(&needle))
-            .collect())
+        self.ls(repo, snapshot_id, None).await
     }
 
     async fn diff(

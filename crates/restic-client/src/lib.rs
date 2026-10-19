@@ -34,12 +34,12 @@ pub trait ResticClient {
         path: &str,
     ) -> impl Future<Output = Result<Vec<Entry>, ResticError>>;
 
-    /// Finds Entries anywhere in a Snapshot whose name contains `query`, ignoring case.
-    fn search(
+    /// Every Entry of a Snapshot. Walks the whole tree, so callers that search repeatedly
+    /// should keep the result rather than ask again.
+    fn list_all(
         &self,
         repo: &RepositoryConnection,
         snapshot_id: &str,
-        query: &str,
     ) -> impl Future<Output = Result<Vec<Entry>, ResticError>>;
 
     /// Lists the paths that differ between two Snapshots, `from` being the older one.
@@ -79,7 +79,7 @@ pub trait ResticClient {
 pub struct FakeResticClient {
     pub snapshots_response: std::sync::Mutex<Option<Result<Vec<Snapshot>, ResticError>>>,
     pub tree_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
-    pub search_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
+    pub listing_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
     pub diff_response: std::sync::Mutex<Option<Result<Vec<DiffEntry>, ResticError>>>,
     pub file_response: std::sync::Mutex<Option<Result<Vec<u8>, ResticError>>>,
     pub restore_response: std::sync::Mutex<Option<Result<RestoreOutcome, ResticError>>>,
@@ -108,17 +108,16 @@ impl ResticClient for FakeResticClient {
             .expect("FakeResticClient.tree_response was not set before list_tree was called")
     }
 
-    async fn search(
+    async fn list_all(
         &self,
         _repo: &RepositoryConnection,
         _snapshot_id: &str,
-        _query: &str,
     ) -> Result<Vec<Entry>, ResticError> {
-        self.search_response
+        self.listing_response
             .lock()
             .unwrap()
             .take()
-            .expect("FakeResticClient.search_response was not set before search was called")
+            .expect("FakeResticClient.listing_response was not set before list_all was called")
     }
 
     async fn diff(

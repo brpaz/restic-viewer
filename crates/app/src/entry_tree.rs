@@ -338,6 +338,8 @@ pub fn build(
     });
 
     let search_generation = Rc::new(Cell::new(0u64));
+    // The full Snapshot listing, fetched by the first search and reused by later ones.
+    let listing: Rc<RefCell<Option<Rc<Vec<Entry>>>>> = Rc::new(RefCell::new(None));
     search_entry.connect_search_changed(move |entry| {
         let query = entry.text().trim().to_string();
         let generation = search_generation.get() + 1;
@@ -358,13 +360,24 @@ pub fn build(
         let connection = connection.clone();
         let snapshot_id = snapshot_id.clone();
         let update_restore_button = update_restore_button.clone();
+        let listing = listing.clone();
         glib::spawn_future_local(async move {
-            let result = RealResticClient::system()
-                .search(&connection, &snapshot_id, &query)
-                .await;
+            let cached = listing.borrow().clone();
+            let result = match cached {
+                Some(all) => Ok(all),
+                None => RealResticClient::system()
+                    .list_all(&connection, &snapshot_id)
+                    .await
+                    .map(|all| {
+                        let all = Rc::new(all);
+                        *listing.borrow_mut() = Some(all.clone());
+                        all
+                    }),
+            };
             if search_generation.get() != generation {
                 return; // the query changed while this search was running
             }
+            let result = result.map(|all| matching_entries(&all, &query));
             match result {
                 Ok(entries) if entries.is_empty() => {
                     results_store.remove_all();
@@ -373,7 +386,6 @@ pub fn build(
                 Ok(entries) => {
                     let nodes: Vec<_> = entries
                         .into_iter()
-                        .take(MAX_SEARCH_RESULTS)
                         .map(|entry| {
                             glib::BoxedAnyObject::new(NodeData::new(
                                 entry,
@@ -395,6 +407,28 @@ pub fn build(
     });
 
     toolbar_view.upcast()
+}
+
+/// Entries whose name contains `query`, ignoring case, capped at [`MAX_SEARCH_RESULTS`].
+fn matching_entries(all: &[Entry], query: &str) -> Vec<Entry> {
+    let needle = query.to_lowercase();
+    all.iter()
+        .filter(|entry| contains_ignore_case(&entry.name, &needle))
+        .take(MAX_SEARCH_RESULTS)
+        .cloned()
+        .collect()
+}
+
+/// `needle` must already be lowercase. ASCII names are compared without allocating,
+/// which matters when scanning every Entry of a large Snapshot per keystroke.
+fn contains_ignore_case(haystack: &str, needle: &str) -> bool {
+    if haystack.is_ascii() && needle.is_ascii() {
+        return haystack
+            .as_bytes()
+            .windows(needle.len())
+            .any(|window| window.eq_ignore_ascii_case(needle.as_bytes()));
+    }
+    haystack.to_lowercase().contains(needle)
 }
 
 fn showing_results(content_stack: &gtk4::Stack) -> bool {
@@ -646,5 +680,46 @@ fn format_meta(entry: &Entry) -> String {
     match entry.size {
         Some(size) => format!("{} · {date}", glib::format_size(size)),
         None => date,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(name: &str) -> Entry {
+        Entry {
+            name: name.to_string(),
+            path: format!("/{name}"),
+            kind: EntryKind::File,
+            size: None,
+            mtime: String::new(),
+        }
+    }
+
+    #[test]
+    fn matching_ignores_case_for_ascii_and_unicode_names() {
+        let all = vec![entry("Report.TXT"), entry("notes.md"), entry("Ünïcode.txt")];
+
+        let names = |query: &str| -> Vec<String> {
+            matching_entries(&all, query)
+                .into_iter()
+                .map(|e| e.name)
+                .collect()
+        };
+
+        assert_eq!(names("report"), vec!["Report.TXT"]);
+        assert_eq!(names(".TXT"), vec!["Report.TXT", "Ünïcode.txt"]);
+        assert_eq!(names("ünï"), vec!["Ünïcode.txt"]);
+        assert!(names("missing").is_empty());
+    }
+
+    #[test]
+    fn results_are_capped() {
+        let all: Vec<Entry> = (0..MAX_SEARCH_RESULTS + 10)
+            .map(|i| entry(&format!("file{i}")))
+            .collect();
+
+        assert_eq!(matching_entries(&all, "file").len(), MAX_SEARCH_RESULTS);
     }
 }

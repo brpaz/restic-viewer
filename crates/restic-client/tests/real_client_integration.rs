@@ -310,13 +310,32 @@ fn first_snapshot_id(fixture: &Fixture) -> String {
 }
 
 #[test]
-fn search_finds_entries_at_any_depth_ignoring_case() {
+fn list_all_returns_entries_at_every_depth() {
     let fixture = build_fixture();
     let snapshot_id = first_snapshot_id(&fixture);
 
     let entries = glib::MainContext::new()
-        .block_on(RealResticClient::system().search(&connection(&fixture), &snapshot_id, "FILE2"))
-        .expect("search");
+        .block_on(RealResticClient::system().list_all(&connection(&fixture), &snapshot_id))
+        .expect("list_all");
+
+    let names: Vec<&str> = entries.iter().map(|e| e.name.as_str()).collect();
+    assert!(names.contains(&"file1.txt"));
+    assert!(names.contains(&"file2.txt"));
+}
+
+#[test]
+fn list_tree_of_a_subdirectory_returns_only_its_children() {
+    let fixture = build_fixture();
+    let snapshot_id = first_snapshot_id(&fixture);
+    let subdir = fixture.source_path.join("subdir");
+
+    let entries = glib::MainContext::new()
+        .block_on(RealResticClient::system().list_tree(
+            &connection(&fixture),
+            &snapshot_id,
+            subdir.to_str().unwrap(),
+        ))
+        .expect("list_tree");
 
     let names: Vec<&str> = entries.iter().map(|e| e.name.as_str()).collect();
     assert_eq!(names, vec!["file2.txt"]);
