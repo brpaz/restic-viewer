@@ -154,11 +154,14 @@ pub fn build(
     connection: RepositoryConnection,
     snapshot_id: String,
     root_paths: Vec<String>,
+    on_compare: impl Fn() + 'static,
 ) -> gtk4::Widget {
     let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
     let toolbar_view: adw::ToolbarView = builder.object("toolbar_view").expect("toolbar_view");
     let restore_button: gtk4::Button = builder.object("restore_button").expect("restore_button");
     let save_button: gtk4::Button = builder.object("save_button").expect("save_button");
+    let compare_button: gtk4::Button = builder.object("compare_button").expect("compare_button");
+    compare_button.connect_clicked(move |_| on_compare());
     let sort_dropdown: gtk4::DropDown = builder.object("sort_dropdown").expect("sort_dropdown");
     let search_entry: gtk4::SearchEntry = builder.object("search_entry").expect("search_entry");
     let content_stack: gtk4::Stack = builder.object("content_stack").expect("content_stack");

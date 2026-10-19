@@ -8,11 +8,6 @@ Adw.NavigationPage snapshot_list_page {
     [top]
     Adw.HeaderBar {
       [start]
-      Gtk.ToggleButton compare_button {
-        icon-name: "view-dual-symbolic";
-        tooltip-text: _("Compare two Snapshots");
-      }
-
       Gtk.Button health_button {
         icon-name: "utilities-system-monitor-symbolic";
         tooltip-text: _("Repository health");
@@ -37,19 +32,6 @@ Adw.NavigationPage snapshot_list_page {
           ]
         };
       }
-    }
-
-    [bottom]
-    Gtk.Revealer compare_hint {
-      child: Gtk.Label {
-        label: _("Select two Snapshots to compare them");
-        margin-top: 8;
-        margin-bottom: 8;
-
-        styles [
-          "dim-label",
-        ]
-      };
     }
 
     content: Gtk.ScrolledWindow {

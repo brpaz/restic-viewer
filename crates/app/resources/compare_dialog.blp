@@ -1,0 +1,44 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  content-width: 520;
+  title: _("Compare with…");
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {}
+
+    [top]
+    Gtk.SearchEntry filter_entry {
+      placeholder-text: _("Filter by host, tag or path");
+      margin-start: 12;
+      margin-end: 12;
+      margin-bottom: 6;
+    }
+
+    content: Gtk.ScrolledWindow {
+      hscrollbar-policy: never;
+      propagate-natural-height: true;
+
+      child: Gtk.ListBox list {
+        selection-mode: none;
+        margin-start: 12;
+        margin-end: 12;
+        margin-bottom: 12;
+        valign: start;
+
+        styles [
+          "boxed-list",
+        ]
+      };
+    };
+  };
+}
+
+Adw.StatusPage empty_status {
+  icon-name: "folder-symbolic";
+  title: _("No Other Snapshots");
+  description: _("There is no other Snapshot to compare with.");
+  vexpand: true;
+}
