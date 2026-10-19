@@ -5,7 +5,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/brpaz/restic-viewer/ci.yml?branch=main&style=for-the-badge)](https://github.com/brpaz/restic-viewer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE.md)
 [![Flatpak](https://img.shields.io/badge/flatpak-ready-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white)](https://flatpak.org)
-[![Vibe coded with Claude Sonnet 5.5](https://img.shields.io/badge/vibe%20coded%20with-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![Vibe coded with Claude Sonnet 5.5](https://img.shields.io/badge/vibe%20coded%20with-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](#ai-disclosure)
 
 <div align="center">
 
@@ -28,6 +28,13 @@
 </table>
 
 Restic Viewer attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need — nothing more. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data.
+
+## AI Disclosure
+
+> [!WARNING]
+> Restic Viewer is vibe coded: nearly all of its code, tests, documentation and build configuration were written by Claude Sonnet 5.5 (Anthropic), directed and reviewed by the maintainer. It scratches a personal itch (browsing and restoring my own restic Repositories without reaching for the CLI) rather than being built for wide adoption. Review the code before relying on it, in particular where it handles Repository passwords and credentials and where it writes restored files, and expect bugs.
+
+The app never changes a Repository, but a Restore writes to your disk, and restoring to the original location overwrites files. Check the Target Directory before you start, and verify anything important against the restic CLI.
 
 ## Features
 
@@ -72,10 +79,6 @@ task flatpak:install
 ```
 
 Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and [`flatpak-builder`](https://docs.flatpak.org/). Full prerequisites, running tests, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## AI Usage
-
-This project is pure vibe coded — [Claude Code](https://claude.com/claude-code) wrote essentially all of it, prompted and reviewed by a human. It scratches a personal itch (browsing and restoring my own restic Repositories without reaching for the CLI) rather than being built for wide adoption, so treat it accordingly.
 
 ## Contributing
 
