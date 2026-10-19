@@ -3,6 +3,7 @@ name = "restic-client"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish = false
 
 [dependencies]
 gio = "0.22"
