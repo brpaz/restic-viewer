@@ -7,8 +7,9 @@ use gio::prelude::*;
 
 use crate::ResticClient;
 use crate::types::{
-    ArchiveFormat, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError,
-    RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, SaveRequest, Snapshot,
+    ArchiveFormat, CheckReport, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection,
+    RepositoryStats, ResticError, RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest,
+    SaveRequest, Snapshot,
 };
 
 /// Shells out to a restic binary and parses its `--json` output.
@@ -41,6 +42,25 @@ impl RealResticClient {
         }
         launcher.setenv("RESTIC_REPOSITORY", repo.repository_argument(), true);
         launcher
+    }
+
+    async fn stats_for(
+        &self,
+        repo: &RepositoryConnection,
+        mode: &str,
+    ) -> Result<StatsLine, ResticError> {
+        let stdout = self
+            .run(
+                repo,
+                &[
+                    "stats".to_string(),
+                    "--mode".to_string(),
+                    mode.to_string(),
+                    "--json".to_string(),
+                ],
+            )
+            .await?;
+        Ok(serde_json::from_str(&stdout)?)
     }
 
     /// Runs `restic ls` (optionally limited to one directory) and parses the nodes.
@@ -97,6 +117,18 @@ struct NodeLine {
     path: String,
     size: Option<u64>,
     mtime: String,
+}
+
+#[derive(Deserialize)]
+struct StatsLine {
+    #[serde(default)]
+    total_size: u64,
+    #[serde(default)]
+    total_file_count: u64,
+    #[serde(default)]
+    total_blob_count: u64,
+    #[serde(default)]
+    snapshots_count: u64,
 }
 
 #[derive(Deserialize)]
@@ -260,6 +292,53 @@ impl ResticClient for RealResticClient {
             });
         }
         Ok(stdout.map(|bytes| bytes.to_vec()).unwrap_or_default())
+    }
+
+    async fn stats(&self, repo: &RepositoryConnection) -> Result<RepositoryStats, ResticError> {
+        let restored = self.stats_for(repo, "restore-size").await?;
+        let stored = self.stats_for(repo, "raw-data").await?;
+        Ok(RepositoryStats {
+            snapshot_count: restored.snapshots_count,
+            file_count: restored.total_file_count,
+            snapshots_size: restored.total_size,
+            stored_size: stored.total_size,
+            blob_count: stored.total_blob_count,
+        })
+    }
+
+    async fn check(
+        &self,
+        repo: &RepositoryConnection,
+        read_data: bool,
+        control: RestoreControl,
+    ) -> Result<CheckReport, ResticError> {
+        if control.is_cancelled() {
+            return Err(ResticError::Cancelled);
+        }
+
+        let launcher = self.launcher(
+            repo,
+            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_MERGE,
+        );
+        let mut argv: Vec<std::ffi::OsString> =
+            vec![self.binary.as_os_str().to_owned(), "check".into()];
+        if read_data {
+            argv.push("--read-data".into());
+        }
+        let argv_refs: Vec<&std::ffi::OsStr> =
+            argv.iter().map(std::ffi::OsString::as_os_str).collect();
+
+        let process = launcher.spawn(&argv_refs)?;
+        control.set_process(process.clone());
+        let (output, _) = process.communicate_utf8_future(None).await?;
+
+        if control.is_cancelled() {
+            return Err(ResticError::Cancelled);
+        }
+        Ok(CheckReport {
+            healthy: process.exit_status() == 0,
+            output: output.map(|s| s.trim().to_string()).unwrap_or_default(),
+        })
     }
 
     async fn save(

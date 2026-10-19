@@ -5,6 +5,7 @@ use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use gettextrs::{gettext, ngettext};
 use gtk4::prelude::*;
 use libadwaita as adw;
 use libadwaita::prelude::*;
@@ -105,7 +106,8 @@ pub fn present(
         }
     });
 
-    start_button.connect_clicked({
+    let selected_count = include_paths.len();
+    let run_restore: Rc<dyn Fn(&gtk4::Button)> = Rc::new({
         let dialog = dialog.clone();
         let group = group.clone();
         let progress_bar = progress_bar.clone();
@@ -118,7 +120,7 @@ pub fn present(
         let include_row = include_row.clone();
         let exclude_row = exclude_row.clone();
         let verify_row = verify_row.clone();
-        move |start_button| {
+        move |start_button: &gtk4::Button| {
             let target = if original_location_row.is_active() {
                 PathBuf::from("/")
             } else {
@@ -199,7 +201,59 @@ pub fn present(
         }
     });
 
+    start_button.connect_clicked({
+        let dialog = dialog.clone();
+        let original_location_row = original_location_row.clone();
+        move |button| {
+            if !original_location_row.is_active() {
+                run_restore(button);
+                return;
+            }
+            let run_restore = run_restore.clone();
+            let button = button.clone();
+            confirm_overwrite(&dialog, selected_count, move || run_restore(&button));
+        }
+    });
+
     dialog.present(Some(parent));
+}
+
+/// Asks before a Restore that writes over files at their original paths, which cannot be
+/// undone from within the app.
+fn confirm_overwrite(dialog: &adw::Dialog, selected_count: usize, on_confirm: impl Fn() + 'static) {
+    let alert = adw::AlertDialog::new(
+        Some(&gettext("Overwrite Original Files?")),
+        Some(&overwrite_warning(selected_count)),
+    );
+    alert.add_responses(&[
+        ("cancel", &gettext("Cancel")),
+        ("overwrite", &gettext("Restore and Overwrite")),
+    ]);
+    alert.set_response_appearance("overwrite", adw::ResponseAppearance::Destructive);
+    alert.set_default_response(Some("cancel"));
+    alert.set_close_response("cancel");
+    alert.connect_response(None, move |_, response| {
+        if response == "overwrite" {
+            on_confirm();
+        }
+    });
+    alert.present(Some(dialog));
+}
+
+/// `selected_count` is the number of chosen Entries; zero means the whole Snapshot.
+fn overwrite_warning(selected_count: usize) -> String {
+    let subject = if selected_count == 0 {
+        gettext("the entire Snapshot")
+    } else {
+        ngettext(
+            "{} selected item",
+            "{} selected items",
+            selected_count.min(u32::MAX as usize) as u32,
+        )
+        .replace("{}", &selected_count.to_string())
+    };
+    gettext("Restoring {} to its original location replaces any files already at those paths. This can't be undone.")
+        .replace("{}", &subject)
 }
 
 /// Splits a comma-separated list of restic patterns, dropping blanks.
@@ -213,7 +267,7 @@ fn split_patterns(text: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::split_patterns;
+    use super::{overwrite_warning, split_patterns};
 
     #[test]
     fn patterns_are_trimmed_and_blanks_dropped() {
@@ -222,5 +276,12 @@ mod tests {
             vec!["*.tmp", "node_modules"]
         );
         assert!(split_patterns("  ").is_empty());
+    }
+
+    #[test]
+    fn the_warning_names_what_will_be_restored() {
+        assert!(overwrite_warning(0).contains("the entire Snapshot"));
+        assert!(overwrite_warning(1).contains("1 selected item to"));
+        assert!(overwrite_warning(3).contains("3 selected items"));
     }
 }

@@ -22,6 +22,7 @@
       <li>Compare two Snapshots to see what was added, removed or changed</li>
       <li>Save a file, or a folder as a tar or zip archive, without restoring it</li>
       <li>Restore individual files or a whole Snapshot, to a new directory or the original path, with include and exclude patterns and optional verification</li>
+      <li>Repository health: size and content totals, and restic's read-only integrity check</li>
       <li>Live restore progress with cancel support</li>
       <li>Repository passwords and Backend credentials stored in the system keyring</li>
     </ul>

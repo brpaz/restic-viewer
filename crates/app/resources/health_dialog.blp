@@ -1,0 +1,131 @@
+using Gtk 4.0;
+using Adw 1;
+
+Adw.Dialog dialog {
+  content-width: 520;
+  title: _("Repository Health");
+
+  child: Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {}
+
+    content: Gtk.ScrolledWindow {
+      propagate-natural-height: true;
+      hscrollbar-policy: never;
+
+      child: Gtk.Box {
+        orientation: vertical;
+        spacing: 18;
+        margin-top: 12;
+        margin-bottom: 18;
+        margin-start: 18;
+        margin-end: 18;
+
+        Adw.PreferencesGroup stats_group {
+          title: _("Contents");
+
+          Adw.ActionRow snapshots_row {
+            title: _("Snapshots");
+            subtitle: _("Loading…");
+
+            styles [
+              "property",
+            ]
+          }
+
+          Adw.ActionRow files_row {
+            title: _("Files in all Snapshots");
+            subtitle: _("Loading…");
+
+            styles [
+              "property",
+            ]
+          }
+
+          Adw.ActionRow snapshots_size_row {
+            title: _("Size of all Snapshots");
+            subtitle: _("Loading…");
+
+            styles [
+              "property",
+            ]
+          }
+
+          Adw.ActionRow stored_row {
+            title: _("Space used in storage");
+            subtitle: _("Loading…");
+
+            styles [
+              "property",
+            ]
+          }
+        }
+
+        Gtk.Label stats_error_label {
+          css-classes: [
+            "error",
+          ];
+
+          wrap: true;
+          xalign: 0;
+          visible: false;
+        }
+
+        Adw.PreferencesGroup check_group {
+          title: _("Integrity check");
+          description: _("Runs restic's read-only check. Nothing in the Repository is changed.");
+
+          Adw.SwitchRow read_data_row {
+            title: _("Read All Data");
+            subtitle: _("Re-reads every pack. Thorough, but slow on large Repositories.");
+          }
+        }
+
+        Gtk.Box {
+          spacing: 12;
+
+          Adw.Spinner check_spinner {
+            visible: false;
+          }
+
+          Gtk.Label check_status {
+            xalign: 0;
+            hexpand: true;
+            wrap: true;
+          }
+
+          Gtk.Button check_button {
+            label: _("Check Repository");
+            valign: center;
+
+            styles [
+              "suggested-action",
+            ]
+          }
+        }
+
+        Gtk.ScrolledWindow check_output_scroller {
+          visible: false;
+          min-content-height: 120;
+          max-content-height: 240;
+          propagate-natural-height: true;
+
+          styles [
+            "card",
+          ]
+
+          child: Gtk.TextView check_output {
+            editable: false;
+            cursor-visible: false;
+            monospace: true;
+            wrap-mode: word_char;
+            top-margin: 8;
+            bottom-margin: 8;
+            left-margin: 8;
+            right-margin: 8;
+          };
+        }
+      };
+    };
+  };
+}

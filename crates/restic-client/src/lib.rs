@@ -9,9 +9,9 @@ mod types;
 
 pub use real::RealResticClient;
 pub use types::{
-    ArchiveFormat, Backend, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection,
-    ResticError, RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, SaveRequest,
-    Snapshot, SnapshotSummary,
+    ArchiveFormat, Backend, CheckReport, DiffChange, DiffEntry, Entry, EntryKind,
+    RepositoryConnection, RepositoryStats, ResticError, RestoreControl, RestoreOutcome,
+    RestoreProgress, RestoreRequest, SaveRequest, Snapshot, SnapshotSummary,
 };
 
 use std::future::Future;
@@ -60,6 +60,21 @@ pub trait ResticClient {
         path: &str,
     ) -> impl Future<Output = Result<Vec<u8>, ResticError>>;
 
+    /// Size and content totals of the Repository.
+    fn stats(
+        &self,
+        repo: &RepositoryConnection,
+    ) -> impl Future<Output = Result<RepositoryStats, ResticError>>;
+
+    /// Runs the read-only `restic check`; with `read_data` it also re-reads every pack,
+    /// which can take very long. `control` cancels it like a Restore.
+    fn check(
+        &self,
+        repo: &RepositoryConnection,
+        read_data: bool,
+        control: RestoreControl,
+    ) -> impl Future<Output = Result<CheckReport, ResticError>>;
+
     /// Streams a file or directory archive straight into `request.destination`. `control`
     /// cancels it like a Restore; a cancelled or failed save leaves no partial file.
     fn save(
@@ -92,6 +107,8 @@ pub struct FakeResticClient {
     pub listing_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
     pub diff_response: std::sync::Mutex<Option<Result<Vec<DiffEntry>, ResticError>>>,
     pub file_response: std::sync::Mutex<Option<Result<Vec<u8>, ResticError>>>,
+    pub stats_response: std::sync::Mutex<Option<Result<RepositoryStats, ResticError>>>,
+    pub check_response: std::sync::Mutex<Option<Result<CheckReport, ResticError>>>,
     pub save_response: std::sync::Mutex<Option<Result<(), ResticError>>>,
     pub restore_response: std::sync::Mutex<Option<Result<RestoreOutcome, ResticError>>>,
 }
@@ -155,6 +172,27 @@ impl ResticClient for FakeResticClient {
             .unwrap()
             .take()
             .expect("FakeResticClient.file_response was not set before read_file was called")
+    }
+
+    async fn stats(&self, _repo: &RepositoryConnection) -> Result<RepositoryStats, ResticError> {
+        self.stats_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.stats_response was not set before stats was called")
+    }
+
+    async fn check(
+        &self,
+        _repo: &RepositoryConnection,
+        _read_data: bool,
+        _control: RestoreControl,
+    ) -> Result<CheckReport, ResticError> {
+        self.check_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.check_response was not set before check was called")
     }
 
     async fn save(
