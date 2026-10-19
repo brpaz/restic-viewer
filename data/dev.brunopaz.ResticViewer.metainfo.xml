@@ -17,12 +17,41 @@
     </p>
     <ul>
       <li>Browse Local, SFTP, and S3-compatible Repositories</li>
-      <li>List Snapshots and walk their file trees</li>
-      <li>Restore individual files or a whole Snapshot, to a new directory or the original path</li>
+      <li>List Snapshots, filter and sort them, and walk their file trees</li>
+      <li>Search a Snapshot by file name and preview text and images in place</li>
+      <li>Compare two Snapshots to see what was added, removed or changed</li>
+      <li>Save a file, or a folder as a tar or zip archive, without restoring it</li>
+      <li>Restore individual files or a whole Snapshot, to a new directory or the original path, with include and exclude patterns and optional verification</li>
       <li>Live restore progress with cancel support</li>
       <li>Repository passwords and Backend credentials stored in the system keyring</li>
     </ul>
   </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/main-window.png</image>
+      <caption>Browse the Snapshots of a Repository</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/file-tree.png</image>
+      <caption>Walk a Snapshot's file tree, sorted by name, size or date</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/preview.png</image>
+      <caption>Preview images and text without restoring them</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/search.png</image>
+      <caption>Search a Snapshot by file name</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/compare.png</image>
+      <caption>See what changed between two Snapshots</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/brpaz/restic-viewer/main/data/screenshots/restore.png</image>
+      <caption>Restore with include and exclude patterns and optional verification</caption>
+    </screenshot>
+  </screenshots>
   <launchable type="desktop-id">dev.brunopaz.ResticViewer.desktop</launchable>
   <categories>
     <category>Utility</category>

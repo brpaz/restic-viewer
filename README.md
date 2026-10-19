@@ -7,6 +7,26 @@
 [![Flatpak](https://img.shields.io/badge/flatpak-ready-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white)](https://flatpak.org)
 [![Vibe coded with Claude Sonnet 5.5](https://img.shields.io/badge/vibe%20coded%20with-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
 
+<div align="center">
+
+![Snapshots of a Repository](data/screenshots/main-window.png "Browse the Snapshots of a Repository")
+
+</div>
+
+<table>
+  <tr>
+    <td><img src="data/screenshots/file-tree.png" alt="Browsing a Snapshot's files"><br><sub>Walk a Snapshot's file tree, sorted by name, size or date</sub></td>
+    <td><img src="data/screenshots/preview.png" alt="Previewing an image"><br><sub>Preview images and text without restoring them</sub></td>
+  </tr>
+  <tr>
+    <td><img src="data/screenshots/search.png" alt="Searching a Snapshot"><br><sub>Search a Snapshot by file name</sub></td>
+    <td><img src="data/screenshots/compare.png" alt="Comparing two Snapshots"><br><sub>See what changed between two Snapshots</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="data/screenshots/restore.png" alt="Restore options" width="50%"><br><sub>Restore with include and exclude patterns and optional verification</sub></td>
+  </tr>
+</table>
+
 Restic Viewer attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need — nothing more. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data.
 
 ## Features
