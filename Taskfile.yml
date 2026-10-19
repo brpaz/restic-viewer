@@ -62,6 +62,7 @@ tasks:
     cmds:
       - task: fmt:check
       - task: lint
+      - task: deny
       - task: test
 
   deny:

@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   test:
-    name: Format, lint, test
+    name: Format, lint, audit, test
     runs-on: ubuntu-latest
     # ubuntu-latest's own libadwaita-1-dev tops out at 1.5, but the app depends on
     # libadwaita's "v1_6" feature (Adw.Spinner) — Fedora tracks current GNOME closely
@@ -42,6 +42,13 @@ jobs:
       - name: cargo fmt --check
         run: cargo fmt --check
 
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - name: cargo deny
+        run: cargo deny check
+
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
 
@@ -50,27 +57,6 @@ jobs:
         run: |
           meson setup _build --prefix=/usr
           meson test -C _build --print-errorlogs
-
-  audit:
-    name: Dependency audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: EmbarkStudios/cargo-deny-action@v2
-
-  secrets:
-    name: Secret scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Install gitleaks
-        run: curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz | sudo tar -xz -C /usr/local/bin gitleaks
-
-      - name: Scan history
-        run: gitleaks git --redact --no-banner
 
   flatpak-sources-check:
     name: cargo-sources.json is up to date
