@@ -5,7 +5,10 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/brpaz/restic-viewer/ci.yml?branch=main&style=for-the-badge)](https://github.com/brpaz/restic-viewer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE.md)
 [![Flatpak](https://img.shields.io/badge/flatpak-ready-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white)](https://flatpak.org)
-[![Vibe coded with Claude Sonnet 5.5](https://img.shields.io/badge/vibe%20coded%20with-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![Vibe coded](https://img.shields.io/badge/vibe%20coded-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=claude&logoColor=white)](#restic-viewer)
+
+> [!WARNING]
+> **AI usage notice:** this project was fully vibe coded with Claude Sonnet 5.5 to scratch a personal itch. The code has had little human review. Use it at your own risk, and check restored files before relying on them.
 
 <div align="center">
 
@@ -73,10 +76,6 @@ task flatpak:install
 ```
 
 Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and [`flatpak-builder`](https://docs.flatpak.org/). Full prerequisites, running tests, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## AI Usage
-
-This project is pure vibe coded — [Claude Code](https://claude.com/claude-code) wrote essentially all of it, prompted and reviewed by a human. It scratches a personal itch (browsing and restoring my own restic Repositories without reaching for the CLI) rather than being built for wide adoption, so treat it accordingly.
 
 ## Contributing
 
