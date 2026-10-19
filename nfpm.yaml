@@ -13,20 +13,16 @@ description: |
   repositories. Attaches to Repositories you already back up elsewhere and lets
   you browse their Snapshots and file trees, and restore what you need.
 
+# Built from a `DESTDIR=... meson install` staging root (see Taskfile.yml and
+# .github/workflows/ci.yml); `type: tree` copies the installed layout as-is.
 contents:
-  - src: ./target/release/restic-viewer
-    dst: /usr/bin/restic-viewer
-    file_info:
-      mode: 0755
+  - src: ./_install/usr/bin
+    dst: /usr/bin
+    type: tree
 
-  - src: ./data/dev.brunopaz.ResticViewer.desktop
-    dst: /usr/share/applications/dev.brunopaz.ResticViewer.desktop
-
-  - src: ./data/dev.brunopaz.ResticViewer.metainfo.xml
-    dst: /usr/share/metainfo/dev.brunopaz.ResticViewer.metainfo.xml
-
-  - src: ./data/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg
-    dst: /usr/share/icons/hicolor/scalable/apps/dev.brunopaz.ResticViewer.svg
+  - src: ./_install/usr/share
+    dst: /usr/share
+    type: tree
 
 # restic itself is a regular dependency here (unlike the Flatpak, which bundles
 # its own build) — native packages should pull it from the distro like any

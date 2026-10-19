@@ -1,6 +1,8 @@
 version: "3"
 
 vars:
+  BUILD_DIR: _build
+  INSTALL_DIR: _install
   MANIFEST: dev.brunopaz.ResticViewer.json
   APP_ID: dev.brunopaz.ResticViewer
 
@@ -9,25 +11,36 @@ tasks:
     desc: List available tasks
     cmd: task --list
 
+  setup:
+    desc: Configure the Meson build directory
+    status:
+      - test -d {{.BUILD_DIR}}
+    cmds:
+      - meson setup {{.BUILD_DIR}} --prefix=/usr
+
   build:
     desc: Build the app in debug mode
+    deps: [setup]
     cmds:
-      - cargo build -p restic-viewer
+      - meson compile -C {{.BUILD_DIR}}
 
   build:release:
     desc: Build the app in release mode
     cmds:
-      - cargo build --release -p restic-viewer
+      - meson setup --reconfigure {{.BUILD_DIR}}-release --prefix=/usr --buildtype=release
+      - meson compile -C {{.BUILD_DIR}}-release
 
   run:
     desc: Run the app natively (not sandboxed)
+    deps: [build]
     cmds:
-      - cargo run -p restic-viewer
+      - "{{.BUILD_DIR}}/crates/app/restic-viewer"
 
   test:
-    desc: Run the full workspace test suite
+    desc: Run the test suite and the desktop/metainfo validators
+    deps: [setup]
     cmds:
-      - cargo test --workspace
+      - meson test -C {{.BUILD_DIR}} --print-errorlogs
 
   fmt:
     desc: Format the workspace
@@ -50,6 +63,16 @@ tasks:
       - task: fmt:check
       - task: lint
       - task: test
+
+  deny:
+    desc: Check dependencies for advisories, licenses and banned sources
+    cmds:
+      - cargo deny check
+
+  secrets:
+    desc: Scan the repository history for leaked secrets
+    cmds:
+      - gitleaks git --redact --no-banner
 
   flatpak:sources:
     desc: Regenerate build-aux/cargo-sources.json from Cargo.lock
@@ -78,17 +101,25 @@ tasks:
     cmds:
       - flatpak run {{.APP_ID}}
 
-  package:deb:
-    desc: Build the app and package it as a .deb (requires nfpm on $PATH; run on a Debian/Ubuntu-family host with libadwaita >= 1.6)
+  package:stage:
+    internal: true
     cmds:
-      - LOCALEDIR=/usr/share/locale cargo build --release -p restic-viewer
-      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager deb --target restic-viewer.deb
+      - rm -rf {{.BUILD_DIR}}-release {{.INSTALL_DIR}}
+      - meson setup {{.BUILD_DIR}}-release --prefix=/usr --buildtype=release
+      - meson compile -C {{.BUILD_DIR}}-release
+      - DESTDIR=$PWD/{{.INSTALL_DIR}} meson install -C {{.BUILD_DIR}}-release
+
+  package:deb:
+    desc: Build and package a .deb from a release build (requires nfpm on $PATH; run on a Debian/Ubuntu-family host with libadwaita >= 1.6)
+    cmds:
+      - task: package:stage
+      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager deb --target .
 
   package:rpm:
-    desc: Build the app and package it as a .rpm (requires nfpm on $PATH; run on a Fedora-family host)
+    desc: Build and package a .rpm from a release build (requires nfpm on $PATH; run on a Fedora-family host)
     cmds:
-      - LOCALEDIR=/usr/share/locale cargo build --release -p restic-viewer
-      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager rpm --target restic-viewer.rpm
+      - task: package:stage
+      - VERSION=$(git describe --tags --always | sed 's/^v//') nfpm package --config nfpm.yaml --packager rpm --target .
 
   hooks:install:
     desc: Install Git hooks (lefthook + commitlint-rs must be on $PATH)
@@ -98,4 +129,4 @@ tasks:
   clean:
     desc: Remove build artifacts
     cmds:
-      - rm -rf target build-dir .flatpak-builder
+      - rm -rf target build-dir .flatpak-builder {{.BUILD_DIR}} {{.BUILD_DIR}}-release {{.INSTALL_DIR}}

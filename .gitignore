@@ -2,6 +2,8 @@
 /.flatpak-builder/
 /build-dir/
 *.flatpak
+*.deb
+*.rpm
 /build-info.env
 /site/
 /.cache/
@@ -10,3 +12,7 @@
 /.devenv.flake.nix
 devenv.local.nix
 devenv.local.yaml
+
+/_build/
+/_build-release/
+/_install/
