@@ -5,7 +5,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/brpaz/restic-viewer/ci.yml?branch=main&style=for-the-badge)](https://github.com/brpaz/restic-viewer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE.md)
 [![Flatpak](https://img.shields.io/badge/flatpak-ready-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white)](https://flatpak.org)
-[![Vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4?style=for-the-badge)](https://github.com/brpaz/restic-viewer)
+[![Vibe coded with Claude Sonnet 5.5](https://img.shields.io/badge/vibe%20coded%20with-Claude%20Sonnet%205.5-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.com/claude-code)
 
 Restic Viewer attaches to Repositories you already back up elsewhere (via `restic` CLI, cron, or another tool), lets you browse their Snapshots and file trees, and restores what you need — nothing more. It doesn't run backups, doesn't schedule anything, and doesn't touch your Repository's data.
 
@@ -23,14 +23,21 @@ Download the package for your system from the [latest release](https://github.co
 
 ```bash
 # Flatpak
-flatpak install --user restic-viewer.flatpak
+flatpak install --user ./dev.brunopaz.ResticViewer-*-x86_64.flatpak
 flatpak run dev.brunopaz.ResticViewer
 
 # Debian/Ubuntu
-sudo apt install ./restic-viewer.deb
+sudo apt install ./restic-viewer_*_amd64.deb
 
 # Fedora
-sudo dnf install ./restic-viewer.rpm
+sudo dnf install ./restic-viewer-*.x86_64.rpm
+```
+
+Each package comes with a `.sha256` file and a build attestation:
+
+```bash
+sha256sum --check restic-viewer_*_amd64.deb.sha256
+gh attestation verify restic-viewer_*_amd64.deb --repo brpaz/restic-viewer
 ```
 
 ## Build from Source
