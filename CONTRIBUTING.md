@@ -97,6 +97,7 @@ task flatpak:run
 | `task flatpak:sources` | Regenerate `build-aux/cargo-sources.json` after touching `Cargo.toml` |
 | `task flatpak:sources:check` | Fail if `cargo-sources.json` is stale (what CI runs) |
 | `task flatpak:build` / `flatpak:install` / `flatpak:run` | Build / install / run the Flatpak |
+| `task blueprint:format` | Format Blueprint UI files |
 | `task deny` | Check dependencies for advisories, licenses and sources (cargo-deny) |
 | `task secrets` | Scan the repository history for leaked secrets (gitleaks) |
 | `task package:deb` / `task package:rpm` | Build a `.deb` / `.rpm` with nfpm from a Meson staging install (see [ADR-0007](docs/adr/0007-nfpm-for-deb-rpm-packages.md), [ADR-0008](docs/adr/0008-meson-as-top-level-build.md)) |

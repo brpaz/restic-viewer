@@ -11,7 +11,11 @@ Adw.NavigationPage snapshot_list_page {
     content: Gtk.ScrolledWindow {
       child: Gtk.ListBox snapshot_list {
         selection-mode: none;
-        styles ["boxed-list"]
+
+        styles [
+          "boxed-list",
+        ]
+
         margin-top: 12;
         margin-bottom: 12;
         margin-start: 12;
@@ -106,7 +110,11 @@ Gtk.Stack stack {
 
         Gtk.Button unlock_button {
           label: _("Unlock");
-          styles ["suggested-action"]
+
+          styles [
+            "suggested-action",
+          ]
+
           halign: end;
         }
       };

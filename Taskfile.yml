@@ -65,6 +65,11 @@ tasks:
       - task: deny
       - task: test
 
+  blueprint:format:
+    desc: Format Blueprint UI files
+    cmds:
+      - blueprint-compiler format --fix crates/app/resources/*.blp
+
   deny:
     desc: Check dependencies for advisories, licenses and banned sources
     cmds:

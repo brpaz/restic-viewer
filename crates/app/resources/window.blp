@@ -48,7 +48,11 @@ Adw.NavigationPage sidebar_page {
         child: Gtk.ScrolledWindow {
           child: Gtk.ListBox repo_list {
             selection-mode: single;
-            styles ["boxed-list"]
+
+            styles [
+              "boxed-list",
+            ]
+
             margin-top: 12;
             margin-bottom: 12;
             margin-start: 12;
