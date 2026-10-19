@@ -116,6 +116,7 @@ fn restores_the_whole_snapshot() {
         snapshot_id,
         include_paths: vec![],
         target: target.path().to_path_buf(),
+        ..Default::default()
     };
 
     let progress_calls = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
@@ -165,6 +166,7 @@ fn restores_only_the_included_path() {
         snapshot_id,
         include_paths: vec![included],
         target: target.path().to_path_buf(),
+        ..Default::default()
     };
 
     let outcome = glib::MainContext::new()
@@ -203,6 +205,7 @@ fn cancelling_before_it_starts_stops_the_restore() {
         snapshot_id,
         include_paths: vec![],
         target: target.path().to_path_buf(),
+        ..Default::default()
     };
 
     let control = RestoreControl::new();
@@ -248,6 +251,7 @@ fn a_permission_denied_target_surfaces_restics_own_error_text() {
         snapshot_id,
         include_paths: vec![],
         target: target.path().to_path_buf(),
+        ..Default::default()
     };
 
     let result = glib::MainContext::new().block_on(client.restore(
@@ -389,4 +393,137 @@ fn diff_reports_added_removed_and_modified_paths() {
         change_for("/file1.txt"),
         restic_client::DiffChange::Modified
     );
+}
+
+fn restore_with(fixture: &Fixture, request: restic_client::RestoreRequest) -> tempfile::TempDir {
+    let target = tempfile::tempdir().unwrap();
+    let request = restic_client::RestoreRequest {
+        snapshot_id: first_snapshot_id(fixture),
+        target: target.path().to_path_buf(),
+        ..request
+    };
+    glib::MainContext::new()
+        .block_on(RealResticClient::system().restore(
+            &connection(fixture),
+            &request,
+            |_| {},
+            RestoreControl::new(),
+        ))
+        .expect("restore");
+    target
+}
+
+fn restored_path(fixture: &Fixture, target: &tempfile::TempDir, name: &str) -> PathBuf {
+    let relative = fixture.source_path.join(name);
+    target.path().join(relative.strip_prefix("/").unwrap())
+}
+
+#[test]
+fn restore_honours_exclude_patterns() {
+    let fixture = build_fixture();
+
+    let target = restore_with(
+        &fixture,
+        restic_client::RestoreRequest {
+            exclude_patterns: vec!["*.txt".into()],
+            ..Default::default()
+        },
+    );
+
+    assert!(!restored_path(&fixture, &target, "file1.txt").exists());
+    assert!(!restored_path(&fixture, &target, "subdir/file2.txt").exists());
+}
+
+#[test]
+fn restore_honours_extra_include_patterns() {
+    let fixture = build_fixture();
+
+    let target = restore_with(
+        &fixture,
+        restic_client::RestoreRequest {
+            include_patterns: vec!["*/file1.txt".into()],
+            ..Default::default()
+        },
+    );
+
+    assert!(restored_path(&fixture, &target, "file1.txt").exists());
+    assert!(!restored_path(&fixture, &target, "subdir/file2.txt").exists());
+}
+
+#[test]
+fn restore_with_verify_succeeds() {
+    let fixture = build_fixture();
+
+    let target = restore_with(
+        &fixture,
+        restic_client::RestoreRequest {
+            verify: true,
+            ..Default::default()
+        },
+    );
+
+    assert!(restored_path(&fixture, &target, "file1.txt").exists());
+}
+
+fn save(fixture: &Fixture, path: &str, archive: Option<restic_client::ArchiveFormat>) -> Vec<u8> {
+    let destination = fixture._dir.path().join("saved.out");
+    let request = restic_client::SaveRequest {
+        snapshot_id: first_snapshot_id(fixture),
+        path: path.to_string(),
+        archive,
+        destination: destination.clone(),
+    };
+    glib::MainContext::new()
+        .block_on(RealResticClient::system().save(
+            &connection(fixture),
+            &request,
+            RestoreControl::new(),
+        ))
+        .expect("save");
+    std::fs::read(destination).unwrap()
+}
+
+#[test]
+fn save_writes_a_single_file_verbatim() {
+    let fixture = build_fixture();
+    let path = fixture.source_path.join("file1.txt");
+
+    assert_eq!(save(&fixture, path.to_str().unwrap(), None), b"hello");
+}
+
+#[test]
+fn save_packs_a_directory_into_a_tar_archive() {
+    let fixture = build_fixture();
+    let path = fixture.source_path.join("subdir");
+
+    let archive = save(
+        &fixture,
+        path.to_str().unwrap(),
+        Some(restic_client::ArchiveFormat::Tar),
+    );
+
+    // tar blocks are 512 bytes and a header holds the member name.
+    assert!(archive.len() >= 512);
+    assert!(String::from_utf8_lossy(&archive).contains("file2.txt"));
+}
+
+#[test]
+fn a_failed_save_leaves_no_partial_file() {
+    let fixture = build_fixture();
+    let destination = fixture._dir.path().join("missing.out");
+    let request = restic_client::SaveRequest {
+        snapshot_id: first_snapshot_id(&fixture),
+        path: "/does/not/exist".to_string(),
+        archive: None,
+        destination: destination.clone(),
+    };
+
+    let result = glib::MainContext::new().block_on(RealResticClient::system().save(
+        &connection(&fixture),
+        &request,
+        RestoreControl::new(),
+    ));
+
+    assert!(result.is_err());
+    assert!(!destination.exists());
 }

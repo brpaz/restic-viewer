@@ -9,8 +9,9 @@ mod types;
 
 pub use real::RealResticClient;
 pub use types::{
-    Backend, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError,
-    RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, Snapshot, SnapshotSummary,
+    ArchiveFormat, Backend, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection,
+    ResticError, RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, SaveRequest,
+    Snapshot, SnapshotSummary,
 };
 
 use std::future::Future;
@@ -59,6 +60,15 @@ pub trait ResticClient {
         path: &str,
     ) -> impl Future<Output = Result<Vec<u8>, ResticError>>;
 
+    /// Streams a file or directory archive straight into `request.destination`. `control`
+    /// cancels it like a Restore; a cancelled or failed save leaves no partial file.
+    fn save(
+        &self,
+        repo: &RepositoryConnection,
+        request: &SaveRequest,
+        control: RestoreControl,
+    ) -> impl Future<Output = Result<(), ResticError>>;
+
     /// Runs a Restore, reporting progress via `on_progress` as restic emits status
     /// updates. `control` can be used by the caller (from outside this future, e.g. a
     /// Cancel button) to stop the Restore early — see [`RestoreControl`].
@@ -82,6 +92,7 @@ pub struct FakeResticClient {
     pub listing_response: std::sync::Mutex<Option<Result<Vec<Entry>, ResticError>>>,
     pub diff_response: std::sync::Mutex<Option<Result<Vec<DiffEntry>, ResticError>>>,
     pub file_response: std::sync::Mutex<Option<Result<Vec<u8>, ResticError>>>,
+    pub save_response: std::sync::Mutex<Option<Result<(), ResticError>>>,
     pub restore_response: std::sync::Mutex<Option<Result<RestoreOutcome, ResticError>>>,
 }
 
@@ -144,6 +155,19 @@ impl ResticClient for FakeResticClient {
             .unwrap()
             .take()
             .expect("FakeResticClient.file_response was not set before read_file was called")
+    }
+
+    async fn save(
+        &self,
+        _repo: &RepositoryConnection,
+        _request: &SaveRequest,
+        _control: RestoreControl,
+    ) -> Result<(), ResticError> {
+        self.save_response
+            .lock()
+            .unwrap()
+            .take()
+            .expect("FakeResticClient.save_response was not set before save was called")
     }
 
     async fn restore(

@@ -7,8 +7,8 @@ use gio::prelude::*;
 
 use crate::ResticClient;
 use crate::types::{
-    DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError, RestoreControl,
-    RestoreOutcome, RestoreProgress, RestoreRequest, Snapshot,
+    ArchiveFormat, DiffChange, DiffEntry, Entry, EntryKind, RepositoryConnection, ResticError,
+    RestoreControl, RestoreOutcome, RestoreProgress, RestoreRequest, SaveRequest, Snapshot,
 };
 
 /// Shells out to a restic binary and parses its `--json` output.
@@ -30,10 +30,12 @@ impl RealResticClient {
         Self::new("restic")
     }
 
-    fn launcher(&self, repo: &RepositoryConnection) -> gio::SubprocessLauncher {
-        let launcher = gio::SubprocessLauncher::new(
-            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_PIPE,
-        );
+    fn launcher(
+        &self,
+        repo: &RepositoryConnection,
+        flags: gio::SubprocessFlags,
+    ) -> gio::SubprocessLauncher {
+        let launcher = gio::SubprocessLauncher::new(flags);
         for (key, value) in repo.environment() {
             launcher.setenv(&key, &value, true);
         }
@@ -62,7 +64,10 @@ impl RealResticClient {
         repo: &RepositoryConnection,
         args: &[String],
     ) -> Result<String, ResticError> {
-        let launcher = self.launcher(repo);
+        let launcher = self.launcher(
+            repo,
+            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_PIPE,
+        );
 
         let mut argv: Vec<std::ffi::OsString> = vec![self.binary.as_os_str().to_owned()];
         argv.extend(args.iter().map(std::ffi::OsString::from));
@@ -230,7 +235,10 @@ impl ResticClient for RealResticClient {
         snapshot_id: &str,
         path: &str,
     ) -> Result<Vec<u8>, ResticError> {
-        let launcher = self.launcher(repo);
+        let launcher = self.launcher(
+            repo,
+            gio::SubprocessFlags::STDOUT_PIPE | gio::SubprocessFlags::STDERR_PIPE,
+        );
         let argv: Vec<std::ffi::OsString> = vec![
             self.binary.as_os_str().to_owned(),
             "dump".into(),
@@ -254,6 +262,56 @@ impl ResticClient for RealResticClient {
         Ok(stdout.map(|bytes| bytes.to_vec()).unwrap_or_default())
     }
 
+    async fn save(
+        &self,
+        repo: &RepositoryConnection,
+        request: &SaveRequest,
+        control: RestoreControl,
+    ) -> Result<(), ResticError> {
+        if control.is_cancelled() {
+            return Err(ResticError::Cancelled);
+        }
+
+        let launcher = self.launcher(repo, gio::SubprocessFlags::STDERR_PIPE);
+        launcher.set_stdout_file_path(Some(&request.destination));
+
+        let mut argv: Vec<std::ffi::OsString> =
+            vec![self.binary.as_os_str().to_owned(), "dump".into()];
+        if let Some(format) = request.archive {
+            argv.push("--archive".into());
+            argv.push(
+                match format {
+                    ArchiveFormat::Tar => "tar",
+                    ArchiveFormat::Zip => "zip",
+                }
+                .into(),
+            );
+        }
+        argv.push(request.snapshot_id.clone().into());
+        argv.push(request.path.clone().into());
+        let argv_refs: Vec<&std::ffi::OsStr> =
+            argv.iter().map(std::ffi::OsString::as_os_str).collect();
+
+        let process = launcher.spawn(&argv_refs)?;
+        control.set_process(process.clone());
+        let (_, stderr) = process.communicate_utf8_future(None).await?;
+
+        let outcome = if control.is_cancelled() {
+            Err(ResticError::Cancelled)
+        } else if process.exit_status() != 0 {
+            Err(ResticError::NonZeroExit {
+                code: Some(process.exit_status()),
+                stderr: stderr.map(|s| s.to_string()).unwrap_or_default(),
+            })
+        } else {
+            Ok(())
+        };
+        if outcome.is_err() {
+            let _ = std::fs::remove_file(&request.destination);
+        }
+        outcome
+    }
+
     async fn restore(
         &self,
         repo: &RepositoryConnection,
@@ -275,6 +333,17 @@ impl ResticClient for RealResticClient {
             // paths with one — with the leading '/' kept, an exact non-glob match restores
             // nothing.
             args.push(include.strip_prefix('/').unwrap_or(include).to_string());
+        }
+        for pattern in &request.include_patterns {
+            args.push("--include".to_string());
+            args.push(pattern.clone());
+        }
+        for pattern in &request.exclude_patterns {
+            args.push("--exclude".to_string());
+            args.push(pattern.clone());
+        }
+        if request.verify {
+            args.push("--verify".to_string());
         }
 
         if control.is_cancelled() {

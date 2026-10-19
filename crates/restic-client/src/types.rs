@@ -111,12 +111,35 @@ pub enum EntryKind {
 }
 
 /// A Restore of either a specific set of Entries or an entire Snapshot.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RestoreRequest {
     pub snapshot_id: String,
     /// Empty means restore the whole Snapshot.
     pub include_paths: Vec<String>,
+    /// Extra restic glob patterns to restore, in addition to `include_paths`.
+    pub include_patterns: Vec<String>,
+    /// restic glob patterns to leave out of the Restore.
+    pub exclude_patterns: Vec<String>,
+    /// Re-reads the restored files and compares them with the Repository afterwards.
+    pub verify: bool,
     pub target: PathBuf,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ArchiveFormat {
+    Tar,
+    Zip,
+}
+
+/// Writes one file, or one directory as an archive, from a Snapshot to a single local
+/// file without restoring it to disk first.
+#[derive(Debug, Clone)]
+pub struct SaveRequest {
+    pub snapshot_id: String,
+    pub path: String,
+    /// `None` writes a file's raw contents; `Some` packs a directory into an archive.
+    pub archive: Option<ArchiveFormat>,
+    pub destination: PathBuf,
 }
 
 #[derive(Debug, Clone, Default)]
