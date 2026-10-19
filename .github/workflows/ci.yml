@@ -78,6 +78,10 @@ jobs:
     name: Flatpak build
     needs: [test, flatpak-sources-check]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
       options: --privileged
@@ -112,31 +116,23 @@ jobs:
           cache-key: flatpak-builder-${{ github.sha }}
           artifact-name: restic-viewer-flatpak-bundle
 
-  flatpak-asset:
-    name: Attach Flatpak bundle to release
-    needs: flatpak-build
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      attestations: write
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: restic-viewer-flatpak-bundle
-
       - name: Write checksum
-        run: sha256sum *.flatpak > "$(echo *.flatpak).sha256"
+        if: github.event_name == 'release'
+        run: sha256sum "${{ steps.version.outputs.bundle }}" > "${{ steps.version.outputs.bundle }}.sha256"
 
       - uses: actions/attest-build-provenance@v4
+        if: github.event_name == 'release'
         with:
-          subject-path: "*.flatpak"
+          subject-path: ${{ steps.version.outputs.bundle }}
 
       - name: Upload bundle to the release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.event.release.tag_name }}" *.flatpak *.flatpak.sha256 --repo "${{ github.repository }}"
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            ${{ steps.version.outputs.bundle }}
+            ${{ steps.version.outputs.bundle }}.sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build-deb:
     name: Build .deb package
