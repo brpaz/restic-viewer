@@ -23,7 +23,7 @@ use gtk4::prelude::*;
 use libadwaita as adw;
 use restic_client::{Entry, EntryKind, RealResticClient, RepositoryConnection, ResticClient};
 
-use crate::{preview_dialog, restore_dialog};
+use crate::{preview_dialog, restore_dialog, save_dialog};
 
 const RESOURCE_PATH: &str = "/dev/brunopaz/ResticViewer/entry_tree.ui";
 
@@ -158,6 +158,7 @@ pub fn build(
     let builder = gtk4::Builder::from_resource(RESOURCE_PATH);
     let toolbar_view: adw::ToolbarView = builder.object("toolbar_view").expect("toolbar_view");
     let restore_button: gtk4::Button = builder.object("restore_button").expect("restore_button");
+    let save_button: gtk4::Button = builder.object("save_button").expect("save_button");
     let sort_dropdown: gtk4::DropDown = builder.object("sort_dropdown").expect("sort_dropdown");
     let search_entry: gtk4::SearchEntry = builder.object("search_entry").expect("search_entry");
     let content_stack: gtk4::Stack = builder.object("content_stack").expect("content_stack");
@@ -291,16 +292,17 @@ pub fn build(
 
     let update_restore_button = {
         let restore_button = restore_button.clone();
+        let save_button = save_button.clone();
         let content_stack = content_stack.clone();
         let tree_selection = tree_selection.clone();
         let results_selection = results_selection.clone();
         move || {
-            let has_selection = if showing_results(&content_stack) {
-                results_selection.selection().size() > 0
-            } else {
-                tree_selection.selection().size() > 0
-            };
-            restore_button.set_sensitive(has_selection);
+            let selected = selected_entries(&content_stack, &tree_selection, &results_selection);
+            restore_button.set_sensitive(!selected.is_empty());
+            // Saving packs exactly one file or directory into one local file.
+            save_button.set_sensitive(
+                matches!(selected.as_slice(), [entry] if entry.kind != EntryKind::Symlink),
+            );
         }
     };
     tree_selection.connect_selection_changed({
@@ -312,6 +314,26 @@ pub fn build(
         move |_, _, _| update()
     });
 
+    save_button.connect_clicked({
+        let content_stack = content_stack.clone();
+        let tree_selection = tree_selection.clone();
+        let results_selection = results_selection.clone();
+        let connection = connection.clone();
+        let snapshot_id = snapshot_id.clone();
+        let parent = parent.clone();
+        move |_| {
+            let selected = selected_entries(&content_stack, &tree_selection, &results_selection);
+            if let [entry] = selected.as_slice() {
+                save_dialog::present(
+                    &parent,
+                    connection.clone(),
+                    snapshot_id.clone(),
+                    entry.clone(),
+                );
+            }
+        }
+    });
+
     restore_button.connect_clicked({
         let content_stack = content_stack.clone();
         let tree_selection = tree_selection.clone();
@@ -319,11 +341,11 @@ pub fn build(
         let connection = connection.clone();
         let snapshot_id = snapshot_id.clone();
         move |_| {
-            let paths = if showing_results(&content_stack) {
-                selected_result_paths(&results_selection)
-            } else {
-                selected_tree_paths(&tree_selection)
-            };
+            let paths: Vec<String> =
+                selected_entries(&content_stack, &tree_selection, &results_selection)
+                    .into_iter()
+                    .map(|entry| entry.path)
+                    .collect();
             if paths.is_empty() {
                 return;
             }
@@ -519,37 +541,33 @@ fn results_factory() -> gtk4::SignalListItemFactory {
     factory
 }
 
-fn selected_tree_paths(model: &gtk4::MultiSelection) -> Vec<String> {
-    let mut paths = Vec::new();
-    for position in 0..model.n_items() {
-        if !model.is_selected(position) {
-            continue;
-        }
-        if let Some(row) = model
-            .item(position)
-            .and_then(|item| item.downcast::<gtk4::TreeListRow>().ok())
-            && let Some(boxed) = row
-                .item()
-                .and_then(|item| item.downcast::<glib::BoxedAnyObject>().ok())
-        {
-            let node = boxed.borrow::<NodeData>();
-            if node.placeholder.is_none() {
-                paths.push(node.entry.path.clone());
-            }
-        }
-    }
-    paths
-}
-
-fn selected_result_paths(model: &gtk4::MultiSelection) -> Vec<String> {
+/// The Entries selected in whichever view (tree or search results) is showing.
+fn selected_entries(
+    content_stack: &gtk4::Stack,
+    tree_selection: &gtk4::MultiSelection,
+    results_selection: &gtk4::MultiSelection,
+) -> Vec<Entry> {
+    let (model, in_tree) = if showing_results(content_stack) {
+        (results_selection, false)
+    } else {
+        (tree_selection, true)
+    };
     (0..model.n_items())
         .filter(|&position| model.is_selected(position))
         .filter_map(|position| {
-            model
-                .item(position)
-                .and_then(|item| item.downcast::<glib::BoxedAnyObject>().ok())
+            let item = model.item(position)?;
+            // Tree rows wrap the node in a TreeListRow; result rows are the node itself.
+            let item = if in_tree {
+                item.downcast::<gtk4::TreeListRow>().ok()?.item()?
+            } else {
+                item
+            };
+            item.downcast::<glib::BoxedAnyObject>().ok()
         })
-        .map(|boxed| boxed.borrow::<NodeData>().entry.path.clone())
+        .filter_map(|boxed| {
+            let node = boxed.borrow::<NodeData>();
+            node.placeholder.is_none().then(|| node.entry.clone())
+        })
         .collect()
 }
 

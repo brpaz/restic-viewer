@@ -32,6 +32,9 @@ pub fn present(
     let original_location_row: adw::SwitchRow = builder
         .object("original_location_row")
         .expect("original_location_row");
+    let include_row: adw::EntryRow = builder.object("include_row").expect("include_row");
+    let exclude_row: adw::EntryRow = builder.object("exclude_row").expect("exclude_row");
+    let verify_row: adw::SwitchRow = builder.object("verify_row").expect("verify_row");
     let progress_bar: gtk4::ProgressBar = builder.object("progress_bar").expect("progress_bar");
     let status_label: gtk4::Label = builder.object("status_label").expect("status_label");
     let error_label: gtk4::Label = builder.object("error_label").expect("error_label");
@@ -112,6 +115,9 @@ pub fn present(
         let original_location_row = original_location_row.clone();
         let chosen_target = chosen_target.clone();
         let control = control.clone();
+        let include_row = include_row.clone();
+        let exclude_row = exclude_row.clone();
+        let verify_row = verify_row.clone();
         move |start_button| {
             let target = if original_location_row.is_active() {
                 PathBuf::from("/")
@@ -136,6 +142,9 @@ pub fn present(
             let request = RestoreRequest {
                 snapshot_id: snapshot_id.clone(),
                 include_paths: include_paths.clone(),
+                include_patterns: split_patterns(&include_row.text()),
+                exclude_patterns: split_patterns(&exclude_row.text()),
+                verify: verify_row.is_active(),
                 target,
             };
             let connection = connection.clone();
@@ -191,4 +200,27 @@ pub fn present(
     });
 
     dialog.present(Some(parent));
+}
+
+/// Splits a comma-separated list of restic patterns, dropping blanks.
+fn split_patterns(text: &str) -> Vec<String> {
+    text.split(',')
+        .map(str::trim)
+        .filter(|pattern| !pattern.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::split_patterns;
+
+    #[test]
+    fn patterns_are_trimmed_and_blanks_dropped() {
+        assert_eq!(
+            split_patterns(" *.tmp, ,node_modules ,"),
+            vec!["*.tmp", "node_modules"]
+        );
+        assert!(split_patterns("  ").is_empty());
+    }
 }
