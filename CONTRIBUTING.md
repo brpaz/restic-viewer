@@ -96,7 +96,9 @@ task flatpak:run
 | `task ci` | Everything CI runs, locally |
 | `task flatpak:sources` | Regenerate `build-aux/cargo-sources.json` after touching `Cargo.toml` |
 | `task flatpak:sources:check` | Fail if `cargo-sources.json` is stale (what CI runs) |
-| `task flatpak:build` / `flatpak:install` / `flatpak:run` | Build / install / run the Flatpak |
+| `task flatpak:build` | Build the release Flatpak |
+| `task flatpak:install` / `flatpak:run` | Build and install / run the development Flatpak (`dev.brunopaz.ResticViewer.Devel`, debug build, installs alongside the release one). Its manifest, `dev.brunopaz.ResticViewer.Devel.json`, must be kept in sync with the release one |
+| `task flatpak:install:release` / `flatpak:run:release` | Build and install / run the release Flatpak |
 | `task blueprint:format` | Format Blueprint UI files |
 | `task deny` | Check dependencies for advisories, licenses and sources (cargo-deny) |
 | `task secrets` | Scan the repository history for leaked secrets (gitleaks) |

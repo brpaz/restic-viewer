@@ -72,7 +72,7 @@ gh attestation verify restic-viewer_*_amd64.deb --repo brpaz/restic-viewer
 ```bash
 git clone https://github.com/brpaz/restic-viewer.git
 cd restic-viewer
-task flatpak:install
+task flatpak:install:release
 ```
 
 Requires the Rust stable toolchain, GTK4/libadwaita/libsecret dev headers, and [`flatpak-builder`](https://docs.flatpak.org/). Full prerequisites, running tests, and the Taskfile reference: [CONTRIBUTING.md](CONTRIBUTING.md).

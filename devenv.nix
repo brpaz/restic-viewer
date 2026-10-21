@@ -30,7 +30,7 @@
     # Local dev target and what crates/restic-client's integration tests spawn.
     pkgs.restic
 
-    # Building/installing the Flatpak locally (task flatpak:install) and
+    # Building/installing the Flatpak locally (task flatpak:install*) and
     # regenerating build-aux/cargo-sources.json.
     pkgs.flatpak-builder
     pkgs.uv
