@@ -22,7 +22,11 @@ use libadwaita::prelude::*;
 
 use config::{RepositoryEntry, RepositoryStore};
 
-const APP_ID: &str = "dev.brunopaz.ResticViewer";
+/// Set by Meson: the development profile appends `.Devel` (see meson_options.txt).
+const APP_ID: &str = match option_env!("APP_ID") {
+    Some(id) => id,
+    None => "dev.brunopaz.ResticViewer",
+};
 const RESOURCE_PREFIX: &str = "/dev/brunopaz/ResticViewer";
 
 /// Matches the .mo filename installed under `<LOCALEDIR>/<lang>/LC_MESSAGES/` —

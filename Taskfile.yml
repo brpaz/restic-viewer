@@ -4,7 +4,9 @@ vars:
   BUILD_DIR: _build
   INSTALL_DIR: _install
   MANIFEST: dev.brunopaz.ResticViewer.json
+  DEV_MANIFEST: dev.brunopaz.ResticViewer.Devel.json
   APP_ID: dev.brunopaz.ResticViewer
+  DEV_APP_ID: dev.brunopaz.ResticViewer.Devel
 
 tasks:
   default:
@@ -98,12 +100,22 @@ tasks:
       - flatpak-builder --force-clean --user --install-deps-from=flathub build-dir {{.MANIFEST}}
 
   flatpak:install:
-    desc: Build and install the Flatpak locally
+    desc: Build and install the development Flatpak ({{.DEV_APP_ID}}, debug build) alongside the release one
+    cmds:
+      - flatpak-builder --force-clean --user --install-deps-from=flathub --install build-dir {{.DEV_MANIFEST}}
+
+  flatpak:install:release:
+    desc: Build and install the release Flatpak locally
     cmds:
       - flatpak-builder --force-clean --user --install-deps-from=flathub --install build-dir {{.MANIFEST}}
 
   flatpak:run:
-    desc: Run the installed Flatpak
+    desc: Run the installed development Flatpak
+    cmds:
+      - flatpak run {{.DEV_APP_ID}}
+
+  flatpak:run:release:
+    desc: Run the installed release Flatpak
     cmds:
       - flatpak run {{.APP_ID}}
 
