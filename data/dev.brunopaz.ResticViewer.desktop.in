@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=Restic Viewer
+Name=@NAME@
 Comment=Browse and restore restic backup repositories
 Exec=restic-viewer
-Icon=dev.brunopaz.ResticViewer
+Icon=@APP_ID@
 Terminal=false
 Categories=Utility;Archiving;
 Keywords=restic;backup;restore;snapshot;repository;

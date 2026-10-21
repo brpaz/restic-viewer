@@ -5,7 +5,14 @@ project(
   license: 'MIT',
 )
 
-app_id = 'dev.brunopaz.ResticViewer'
+base_app_id = 'dev.brunopaz.ResticViewer'
+if get_option('profile') == 'development'
+  app_id = base_app_id + '.Devel'
+  app_name = 'Restic Viewer (Development)'
+else
+  app_id = base_app_id
+  app_name = 'Restic Viewer'
+endif
 
 cargo = find_program('cargo')
 desktop_file_validate = find_program('desktop-file-validate', required: false)
@@ -20,6 +27,7 @@ localedir = prefix / get_option('localedir')
 cargo_env = environment()
 cargo_env.set('CARGO_TARGET_DIR', meson.project_build_root() / 'cargo-target')
 cargo_env.set('LOCALEDIR', localedir)
+cargo_env.set('APP_ID', app_id)
 
 subdir('data')
 subdir('crates/app')
