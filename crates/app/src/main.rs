@@ -1,4 +1,5 @@
 mod add_repository;
+mod compare_dialog;
 mod config;
 mod diff_view;
 mod entry_tree;
