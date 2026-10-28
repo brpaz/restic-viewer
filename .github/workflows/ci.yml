@@ -21,9 +21,9 @@ jobs:
     # ubuntu-latest's own libadwaita-1-dev tops out at 1.5, but the app depends on
     # libadwaita's "v1_6" feature (Adw.Spinner) — Fedora tracks current GNOME closely
     # enough to satisfy it, and matches the Flatpak module's own GNOME Platform target.
-    container: fedora:46
+    container: fedora:46@sha256:a9bab18d01cf2c2cf62f3e79c72623405bce14ac062995cc6651a3073c802e41
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install system dependencies
         run: |
@@ -37,7 +37,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - name: cargo fmt --check
         run: cargo fmt --check
@@ -62,7 +62,7 @@ jobs:
     name: cargo-sources.json is up to date
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
@@ -85,10 +85,10 @@ jobs:
       id-token: write
       attestations: write
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51@sha256:78d969b18225ae107ca29497bf09c4a3f791e5f1838a9a912a529d0024fb6210
       options: --privileged
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -111,7 +111,7 @@ jobs:
           cat build-info.env
           echo "bundle=dev.brunopaz.ResticViewer-${version#v}-x86_64.flatpak" >> "$GITHUB_OUTPUT"
 
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6
         with:
           bundle: ${{ steps.version.outputs.bundle }}
           manifest-path: dev.brunopaz.ResticViewer.json
@@ -122,14 +122,14 @@ jobs:
         if: github.event_name == 'release'
         run: sha256sum "${{ steps.version.outputs.bundle }}" > "${{ steps.version.outputs.bundle }}.sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         if: github.event_name == 'release'
         with:
           subject-path: ${{ steps.version.outputs.bundle }}
 
       - name: Upload bundle to the release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: |
             ${{ steps.version.outputs.bundle }}
@@ -150,7 +150,7 @@ jobs:
     # requirements aligned with what current Debian/Ubuntu already provide.
     container: debian:trixie
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install build dependencies
         run: |
@@ -162,7 +162,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - uses: ./.github/actions/setup-nfpm
 
@@ -180,12 +180,12 @@ jobs:
       - name: Write checksum
         run: sha256sum *.deb > "$(echo *.deb).sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: "*.deb"
 
       - name: Upload package to the release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: |
             *.deb
@@ -201,9 +201,9 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    container: fedora:46
+    container: fedora:46@sha256:a9bab18d01cf2c2cf62f3e79c72623405bce14ac062995cc6651a3073c802e41
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install build dependencies
         run: |
@@ -214,7 +214,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - uses: ./.github/actions/setup-nfpm
 
@@ -232,12 +232,12 @@ jobs:
       - name: Write checksum
         run: sha256sum *.rpm > "$(echo *.rpm).sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: "*.rpm"
 
       - name: Upload package to the release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: |
             *.rpm
