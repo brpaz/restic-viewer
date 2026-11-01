@@ -43,6 +43,19 @@
       "reviewers": ["brpaz"]
     },
     {
+      "description": "Dev tooling: non-major updates grouped and automerged on green CI",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies",
+      "automerge": true
+    },
+    {
+      "description": "Container images are reviewed manually and wait a week before a PR can merge",
+      "matchDatasources": ["docker"],
+      "automerge": false,
+      "minimumReleaseAge": "7 days"
+    },
+    {
       "description": "The action downloads its binary from the release named by its own ref, so it must be referenced by tag",
       "matchPackageNames": ["brpaz/draftsman"],
       "pinDigests": false
