@@ -23,7 +23,7 @@ jobs:
     # enough to satisfy it, and matches the Flatpak module's own GNOME Platform target.
     container: fedora:46
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install system dependencies
         run: |
@@ -37,7 +37,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - name: cargo fmt --check
         run: cargo fmt --check
@@ -62,7 +62,7 @@ jobs:
     name: cargo-sources.json is up to date
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
@@ -85,7 +85,7 @@ jobs:
       id-token: write
       attestations: write
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51@sha256:78d969b18225ae107ca29497bf09c4a3f791e5f1838a9a912a529d0024fb6210
       # The host paths are mounted so the first step can delete them: the SDK
       # runtime, extensions and cargo target do not fit in the runner's free disk.
       options: >-
@@ -102,7 +102,7 @@ jobs:
           rm -rf /host/android/* /host/dotnet/* /host/ghc/* /host/swift/* || true
           df -h /
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -125,7 +125,7 @@ jobs:
           cat build-info.env
           echo "bundle=dev.brunopaz.ResticViewer-${version#v}-x86_64.flatpak" >> "$GITHUB_OUTPUT"
 
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6
         with:
           bundle: ${{ steps.version.outputs.bundle }}
           manifest-path: dev.brunopaz.ResticViewer.json
@@ -136,7 +136,7 @@ jobs:
         if: github.event_name == 'release'
         run: sha256sum "${{ steps.version.outputs.bundle }}" > "${{ steps.version.outputs.bundle }}.sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         if: github.event_name == 'release'
         with:
           subject-path: ${{ steps.version.outputs.bundle }}
@@ -164,7 +164,7 @@ jobs:
     # requirements aligned with what current Debian/Ubuntu already provide.
     container: debian:trixie
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install build dependencies
         run: |
@@ -176,7 +176,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - uses: ./.github/actions/setup-nfpm
 
@@ -194,7 +194,7 @@ jobs:
       - name: Write checksum
         run: sha256sum *.deb > "$(echo *.deb).sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: "*.deb"
 
@@ -217,7 +217,7 @@ jobs:
       attestations: write
     container: fedora:46
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install build dependencies
         run: |
@@ -228,7 +228,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
 
       - uses: ./.github/actions/setup-nfpm
 
@@ -246,7 +246,7 @@ jobs:
       - name: Write checksum
         run: sha256sum *.rpm > "$(echo *.rpm).sha256"
 
-      - uses: actions/attest-build-provenance@v4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4
         with:
           subject-path: "*.rpm"
 
